@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Relations: 关系的归纳定义 | 编程语言基础：Agda 描述
+</title><!-- Begin Jekyll SEO tag v2.5.0 -->
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Relations: 关系的归纳定义" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="编程语言基础：Agda 描述" />
+<meta property="og:description" content="编程语言基础：Agda 描述" />
+<link rel="canonical" href="https://agda-zh.github.io/PLFA-zh/Relations/" />
+<meta property="og:url" content="https://agda-zh.github.io/PLFA-zh/Relations/" />
+<meta property="og:site_name" content="编程语言基础：Agda 描述" />
+<script type="application/ld+json">
+{"description":"编程语言基础：Agda 描述","@type":"WebPage","url":"https://agda-zh.github.io/PLFA-zh/Relations/","headline":"Relations: 关系的归纳定义","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/PLFA-zh/assets/main.css"></head>
+<body><header class="site-header" role="banner">
+
+    <div class="wrapper">
+
+        <a class="site-title" href="/PLFA-zh/">编程语言基础：Agda 描述
+</a>
+
+        <nav class="site-nav">
+            <span class="menu-icon">
+                <svg viewBox="0 0 18 15" width="18px" height="15px">
+                    <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+                    <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+                    <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+                </svg>
+            </span>
+
+            <div class="trigger">
+                <a class="page-link" href="/PLFA-zh/">本书</a>
+                <!--!>
+                <a class="page-link" href="/PLFA-zh/Announcements/">公告</a>
+                <---->
+                <a class="page-link" href="/PLFA-zh/GettingStarted/">使用说明</a>
+                <a class="page-link" href="/PLFA-zh/Citing/">引用</a>
+                <a class="page-link" href="https://plfa.github.io/">English</a>
+            </div>
+        </nav>
+
+    </div>
+
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+      <h1 class="post-title">Relations: 关系的归纳定义</h1>
+  </header>
+
+  <p style="text-align:center;">
+    
+    <a alt="Previous chapter" href="/PLFA-zh/Induction/">前一章</a>
+    &bullet;
+    
+    
+    <a alt="Source code" href="https://github.com/Agda-zh/PLFA-zh/blob/dev/src/plfa/Relations.lagda">源代码</a>
+    
+    
+    &bullet;
+    <a alt="Next chapter" href="/PLFA-zh/Equality/">后一章</a>
+    
+</p>
+
+
+  <div class="post-content">
+    <pre class="Agda"><a id="190" class="Keyword">module</a> <a id="197" href="/PLFA-zh/Relations/" class="Module">plfa.Relations</a> <a id="212" class="Keyword">where</a></pre>
+<!-- After having defined operations such as addition and multiplication,
+the next step is to define relations, such as _less than or equal_. -->
+
+<p>在定义了加法和乘法等运算以后，下一步我们来定义<strong>关系（Relation）</strong>，比如说<strong>小于等于</strong>。</p>
+
+<!-- ## Imports -->
+
+<h2 id="导入">导入</h2>
+
+<pre class="Agda"><a id="488" class="Keyword">import</a> <a id="495" href="https://agda.github.io/agda-stdlib/v0.17/Relation.Binary.PropositionalEquality.html" class="Module">Relation.Binary.PropositionalEquality</a> <a id="533" class="Symbol">as</a> <a id="536" class="Module">Eq</a>
+<a id="539" class="Keyword">open</a> <a id="544" href="https://agda.github.io/agda-stdlib/v0.17/Relation.Binary.PropositionalEquality.html" class="Module">Eq</a> <a id="547" class="Keyword">using</a> <a id="553" class="Symbol">(</a><a id="554" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">_≡_</a><a id="557" class="Symbol">;</a> <a id="559" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a><a id="563" class="Symbol">;</a> <a id="565" href="https://agda.github.io/agda-stdlib/v0.17/Relation.Binary.PropositionalEquality.html#1170" class="Function">cong</a><a id="569" class="Symbol">)</a>
+<a id="571" class="Keyword">open</a> <a id="576" class="Keyword">import</a> <a id="583" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.html" class="Module">Data.Nat</a> <a id="592" class="Keyword">using</a> <a id="598" class="Symbol">(</a><a id="599" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="600" class="Symbol">;</a> <a id="602" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a><a id="606" class="Symbol">;</a> <a id="608" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a><a id="611" class="Symbol">;</a> <a id="613" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">_+_</a><a id="616" class="Symbol">)</a>
+<a id="618" class="Keyword">open</a> <a id="623" class="Keyword">import</a> <a id="630" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html" class="Module">Data.Nat.Properties</a> <a id="650" class="Keyword">using</a> <a id="656" class="Symbol">(</a><a id="657" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#9708" class="Function">+-comm</a><a id="663" class="Symbol">)</a></pre>
+
+<!-- ## Defining relations -->
+
+<h2 id="定义关系">定义关系</h2>
+
+<!-- The relation _less than or equal_ has an infinite number of
+instances.  Here are a few of them: -->
+
+<p>小于等于这个关系有无穷个实例，如下所示：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0 ≤ 0     0 ≤ 1     0 ≤ 2     0 ≤ 3     ...
+          1 ≤ 1     1 ≤ 2     1 ≤ 3     ...
+                    2 ≤ 2     2 ≤ 3     ...
+                              3 ≤ 3     ...
+                                        ...
+</code></pre></div></div>
+
+<!-- And yet, we can write a finite definition that encompasses
+all of these instances in just a few lines.  Here is the
+definition as a pair of inference rules: -->
+
+<p>但是，我们仍然可以用几行有限的定义来表示所有的实例，如下文所示的一对推理规则：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>z≤n --------
+    zero ≤ n
+
+    m ≤ n
+s≤s -------------
+    suc m ≤ suc n
+</code></pre></div></div>
+
+<!-- And here is the definition in Agda: -->
+
+<p>以及其 Agda 定义：</p>
+
+<pre class="Agda"><a id="1496" class="Keyword">data</a> <a id="_≤_"></a><a id="1501" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">_≤_</a> <a id="1505" class="Symbol">:</a> <a id="1507" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="1509" class="Symbol">→</a> <a id="1511" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="1513" class="Symbol">→</a> <a id="1515" class="PrimitiveType">Set</a> <a id="1519" class="Keyword">where</a>
+
+  <a id="_≤_.z≤n"></a><a id="1528" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a> <a id="1532" class="Symbol">:</a> <a id="1534" class="Symbol">∀</a> <a id="1536" class="Symbol">{</a><a id="1537" href="/PLFA-zh/Relations/#1537" class="Bound">n</a> <a id="1539" class="Symbol">:</a> <a id="1541" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="1542" class="Symbol">}</a>
+      <a id="1550" class="Comment">--------</a>
+    <a id="1563" class="Symbol">→</a> <a id="1565" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a> <a id="1570" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="1572" href="/PLFA-zh/Relations/#1537" class="Bound">n</a>
+
+  <a id="_≤_.s≤s"></a><a id="1577" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="1581" class="Symbol">:</a> <a id="1583" class="Symbol">∀</a> <a id="1585" class="Symbol">{</a><a id="1586" href="/PLFA-zh/Relations/#1586" class="Bound">m</a> <a id="1588" href="/PLFA-zh/Relations/#1588" class="Bound">n</a> <a id="1590" class="Symbol">:</a> <a id="1592" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="1593" class="Symbol">}</a>
+    <a id="1599" class="Symbol">→</a> <a id="1601" href="/PLFA-zh/Relations/#1586" class="Bound">m</a> <a id="1603" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="1605" href="/PLFA-zh/Relations/#1588" class="Bound">n</a>
+      <a id="1613" class="Comment">-------------</a>
+    <a id="1631" class="Symbol">→</a> <a id="1633" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="1637" href="/PLFA-zh/Relations/#1586" class="Bound">m</a> <a id="1639" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="1641" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="1645" href="/PLFA-zh/Relations/#1588" class="Bound">n</a></pre>
+
+<!-- Here `z≤n` and `s≤s` (with no spaces) are constructor names, while
+`zero ≤ n`, and `m ≤ n` and `suc m ≤ suc n` (with spaces) are types.
+This is our first use of an _indexed_ datatype, where the type `m ≤ n`
+is indexed by two naturals, `m` and `n`.  In Agda any line beginning
+with two or more dashes is a comment, and here we have exploited that
+convention to write our Agda code in a form that resembles the
+corresponding inference rules, a trick we will use often from now on. -->
+
+<p>在这里，<code class="highlighter-rouge">z≤n</code> 和 <code class="highlighter-rouge">s≤s</code>（无空格）是构造器的名称，<code class="highlighter-rouge">zero ≤ n</code>、<code class="highlighter-rouge">m ≤ n</code> 和
+<code class="highlighter-rouge">suc m ≤ suc n</code> （带空格）是类型。在这里我们第一次用到了
+<strong>索引数据类型（Indexed datatype）</strong>。我们使用 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code> 这两个自然数来索引
+<code class="highlighter-rouge">m ≤ n</code> 这个类型。在 Agda 里，由两个及以上短横线开始的行是注释行，我们巧妙利用这一语法特性，用上述形式来表示相应的推理规则。在后文中，我们还会继续使用这一形式。</p>
+
+<!-- Both definitions above tell us the same two things:
+
+* _Base case_: for all naturals `n`, the proposition `zero ≤ n` holds.
+* _Inductive case_: for all naturals `m` and `n`, if the proposition
+  `m ≤ n` holds, then the proposition `suc m ≤ suc n` holds. -->
+
+<p>这两条定义告诉我们相同的两件事：</p>
+
+<ul>
+  <li><strong>起始步骤</strong>: 对于所有的自然数 <code class="highlighter-rouge">n</code>，命题 <code class="highlighter-rouge">zero ≤ n</code> 成立。</li>
+  <li><strong>归纳步骤</strong>：对于所有的自然数 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，如果命题 <code class="highlighter-rouge">m ≤ n</code> 成立，
+那么命题 <code class="highlighter-rouge">suc m ≤ suc n</code> 成立。</li>
+</ul>
+
+<!-- In fact, they each give us a bit more detail:
+
+* _Base case_: for all naturals `n`, the constructor `z≤n`
+  produces evidence that `zero ≤ n` holds.
+* _Inductive case_: for all naturals `m` and `n`, the constructor
+  `s≤s` takes evidence that `m ≤ n` holds into evidence that
+  `suc m ≤ suc n` holds. -->
+
+<p>实际上，他们分别给我们更多的信息：</p>
+
+<ul>
+  <li><strong>起始步骤</strong>: 对于所有的自然数 <code class="highlighter-rouge">n</code>，构造器 <code class="highlighter-rouge">z≤n</code> 提供了 <code class="highlighter-rouge">zero ≤ n</code> 成立的证明。</li>
+  <li><strong>归纳步骤</strong>：对于所有的自然数 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，构造器 <code class="highlighter-rouge">s≤s</code> 将 <code class="highlighter-rouge">m ≤ n</code> 成立的证明
+转化为 <code class="highlighter-rouge">suc m ≤ suc n</code> 成立的证明。</li>
+</ul>
+
+<!-- For example, here in inference rule notation is the proof that
+`2 ≤ 4`: -->
+
+<p>例如，我们在这里以推理规则的形式写出 <code class="highlighter-rouge">2 ≤ 4</code> 的证明：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  z≤n -----
+      0 ≤ 2
+ s≤s -------
+      1 ≤ 3
+s≤s ---------
+      2 ≤ 4
+</code></pre></div></div>
+
+<!-- And here is the corresponding Agda proof: -->
+
+<p>下面是对应的 Agda 证明：</p>
+
+<pre class="Agda"><a id="3591" href="/PLFA-zh/Relations/#3591" class="Function">_</a> <a id="3593" class="Symbol">:</a> <a id="3595" class="Number">2</a> <a id="3597" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="3599" class="Number">4</a>
+<a id="3601" class="Symbol">_</a> <a id="3603" class="Symbol">=</a> <a id="3605" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="3609" class="Symbol">(</a><a id="3610" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="3614" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a><a id="3617" class="Symbol">)</a></pre>
+
+<!-- ## Implicit arguments -->
+
+<h2 id="隐式参数">隐式参数</h2>
+
+<!-- This is our first use of implicit arguments.  In the definition of
+inequality, the two lines defining the constructors use `∀`, very
+similar to our use of `∀` in propositions such as: -->
+
+<p>这是我们第一次使用隐式参数。定义不等式时，构造器的定义中使用了 <code class="highlighter-rouge">∀</code>，就像我们在下面的命题中使用 <code class="highlighter-rouge">∀</code> 一样：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>+-comm : ∀ (m n : ℕ) → m + n ≡ n + m
+</code></pre></div></div>
+
+<!-- However, here the declarations are surrounded by curly braces `{ }`
+rather than parentheses `( )`.  This means that the arguments are
+_implicit_ and need not be written explicitly; instead, they are
+_inferred_ by Agda's typechecker. Thus, we write `+-comm m n` for the
+proof that `m + n ≡ n + m`, but `z≤n` for the proof that `zero ≤ n`,
+leaving `n` implicit.  Similarly, if `m≤n` is evidence that `m ≤ n`,
+we write `s≤s m≤n` for evidence that `suc m ≤ suc n`, leaving both `m`
+and `n` implicit. -->
+
+<p>但是我们这里的定义使用了花括号 <code class="highlighter-rouge">{ }</code>，而不是小括号 <code class="highlighter-rouge">( )</code>。这意味着参数是<strong>隐式的（Implicit）</strong>，不需要额外声明。实际上，Agda 的类型检查器会<strong>推导（Infer）</strong>出它们。因此，我们在 <code class="highlighter-rouge">m + n ≡ n + m</code> 的证明中需要写出 <code class="highlighter-rouge">+-comm m n</code>，在 <code class="highlighter-rouge">zero ≤ n</code> 的证明中可以省略 <code class="highlighter-rouge">n</code>。同理，如果 <code class="highlighter-rouge">m≤n</code> 是 <code class="highlighter-rouge">m ≤ n</code>的证明，那么我们写出 <code class="highlighter-rouge">s≤s m≤n</code> 作为 <code class="highlighter-rouge">suc m ≤ suc n</code> 的证明，无需声明 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>。</p>
+
+<!-- If we wish, it is possible to provide implicit arguments explicitly by
+writing the arguments inside curly braces.  For instance, here is the
+Agda proof that `2 ≤ 4` repeated, with the implicit arguments made
+explicit: -->
+
+<p>如果有希望的话，我们也可以在大括号里显式声明隐式参数。例如，下面是 <code class="highlighter-rouge">2 ≤ 4</code> 的 Agda
+证明，包括了显式声明了的隐式参数：</p>
+
+<pre class="Agda"><a id="5073" href="/PLFA-zh/Relations/#5073" class="Function">_</a> <a id="5075" class="Symbol">:</a> <a id="5077" class="Number">2</a> <a id="5079" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="5081" class="Number">4</a>
+<a id="5083" class="Symbol">_</a> <a id="5085" class="Symbol">=</a> <a id="5087" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="5091" class="Symbol">{</a><a id="5092" class="Number">1</a><a id="5093" class="Symbol">}</a> <a id="5095" class="Symbol">{</a><a id="5096" class="Number">3</a><a id="5097" class="Symbol">}</a> <a id="5099" class="Symbol">(</a><a id="5100" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="5104" class="Symbol">{</a><a id="5105" class="Number">0</a><a id="5106" class="Symbol">}</a> <a id="5108" class="Symbol">{</a><a id="5109" class="Number">2</a><a id="5110" class="Symbol">}</a> <a id="5112" class="Symbol">(</a><a id="5113" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a> <a id="5117" class="Symbol">{</a><a id="5118" class="Number">2</a><a id="5119" class="Symbol">}))</a></pre>
+
+<!-- One may also identify implicit arguments by name: -->
+
+<p>也可以额外加上参数的名字：</p>
+
+<pre class="Agda"><a id="5231" href="/PLFA-zh/Relations/#5231" class="Function">_</a> <a id="5233" class="Symbol">:</a> <a id="5235" class="Number">2</a> <a id="5237" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="5239" class="Number">4</a>
+<a id="5241" class="Symbol">_</a> <a id="5243" class="Symbol">=</a> <a id="5245" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="5249" class="Symbol">{</a><a id="5250" class="Argument">m</a> <a id="5252" class="Symbol">=</a> <a id="5254" class="Number">1</a><a id="5255" class="Symbol">}</a> <a id="5257" class="Symbol">{</a><a id="5258" class="Argument">n</a> <a id="5260" class="Symbol">=</a> <a id="5262" class="Number">3</a><a id="5263" class="Symbol">}</a> <a id="5265" class="Symbol">(</a><a id="5266" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="5270" class="Symbol">{</a><a id="5271" class="Argument">m</a> <a id="5273" class="Symbol">=</a> <a id="5275" class="Number">0</a><a id="5276" class="Symbol">}</a> <a id="5278" class="Symbol">{</a><a id="5279" class="Argument">n</a> <a id="5281" class="Symbol">=</a> <a id="5283" class="Number">2</a><a id="5284" class="Symbol">}</a> <a id="5286" class="Symbol">(</a><a id="5287" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a> <a id="5291" class="Symbol">{</a><a id="5292" class="Argument">n</a> <a id="5294" class="Symbol">=</a> <a id="5296" class="Number">2</a><a id="5297" class="Symbol">}))</a></pre>
+
+<!-- In the latter format, you may only supply some implicit arguments: -->
+
+<p>在后者的形式中，也可以只声明一部分隐式参数：</p>
+
+<pre class="Agda"><a id="5435" href="/PLFA-zh/Relations/#5435" class="Function">_</a> <a id="5437" class="Symbol">:</a> <a id="5439" class="Number">2</a> <a id="5441" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="5443" class="Number">4</a>
+<a id="5445" class="Symbol">_</a> <a id="5447" class="Symbol">=</a> <a id="5449" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="5453" class="Symbol">{</a><a id="5454" class="Argument">n</a> <a id="5456" class="Symbol">=</a> <a id="5458" class="Number">3</a><a id="5459" class="Symbol">}</a> <a id="5461" class="Symbol">(</a><a id="5462" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="5466" class="Symbol">{</a><a id="5467" class="Argument">n</a> <a id="5469" class="Symbol">=</a> <a id="5471" class="Number">2</a><a id="5472" class="Symbol">}</a> <a id="5474" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a><a id="5477" class="Symbol">)</a></pre>
+
+<!-- It is not permitted to swap implicit arguments, even when named. -->
+
+<p>但是不可以改变隐式参数的顺序，即便加上了名字。</p>
+
+<!-- ## Precedence -->
+
+<h2 id="优先级">优先级</h2>
+
+<!-- We declare the precedence for comparison as follows: -->
+
+<p>我们如下定义比较的优先级：</p>
+
+<pre class="Agda"><a id="5739" class="Keyword">infix</a> <a id="5745" class="Number">4</a> <a id="5747" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">_≤_</a></pre>
+
+<!-- We set the precedence of `_≤_` at level 4, so it binds less tightly
+than `_+_` at level 6 and hence `1 + 2 ≤ 3` parses as `(1 + 2) ≤ 3`.
+We write `infix` to indicate that the operator does not associate to
+either the left or right, as it makes no sense to parse `1 ≤ 2 ≤ 3` as
+either `(1 ≤ 2) ≤ 3` or `1 ≤ (2 ≤ 3)`. -->
+
+<p>我们将 <code class="highlighter-rouge">_≤_</code> 的优先级设置为 4，所以它比优先级为 6 的 <code class="highlighter-rouge">_+_</code> 结合的更紧，此外，
+<code class="highlighter-rouge">1 + 2 ≤ 3</code> 将被解析为 <code class="highlighter-rouge">(1 + 2) ≤ 3</code>。我们用 <code class="highlighter-rouge">infix</code> 来表示运算符既不是左结合的，也不是右结合的。因为 <code class="highlighter-rouge">1 ≤ 2 ≤ 3</code> 解析为 <code class="highlighter-rouge">(1 ≤ 2) ≤ 3</code> 或者 <code class="highlighter-rouge">1 ≤ (2 ≤ 3)</code> 都没有意义。</p>
+
+<!-- ## Decidability -->
+
+<h2 id="可决定性">可决定性</h2>
+
+<!-- Given two numbers, it is straightforward to compute whether or not the
+first is less than or equal to the second.  We don't give the code for
+doing so here, but will return to this point in
+Chapter [Decidable](/PLFA-zh/Decidable/). -->
+
+<p>给定两个数，我们可以很直接地决定第一个数是不是小于等于第二个数。我们在此处不给出说明的代码，但我们会在 <a href="/PLFA-zh/Decidable/">Decidable</a> 章节重新讨论这个问题。</p>
+
+<!-- ## Inversion -->
+
+<h2 id="反演">反演</h2>
+
+<!-- In our defintions, we go from smaller things to larger things.
+For instance, form `m ≤ n` we can conclude `suc m ≤ suc n`,
+where `suc m` is bigger than `m` (that is, the former contains
+the latter), and `suc n` is bigger than `n`. But sometimes we
+want to go from bigger things to smaller things. -->
+
+<p>在我们的定义中，我们从更小的东西得到更大的东西。例如，我们可以从
+<code class="highlighter-rouge">m ≤ n</code> 得出 <code class="highlighter-rouge">suc m ≤ suc n</code> 的结论，这里的 <code class="highlighter-rouge">suc m</code> 比 <code class="highlighter-rouge">m</code> 更大
+（也就是说，前者包含后者），<code class="highlighter-rouge">suc n</code> 也比 <code class="highlighter-rouge">n</code> 更大。但有时我们也需要从更大的东西得到更小的东西。</p>
+
+<!-- There is only one way to prove that `suc m ≤ suc n`, for any `m`
+and `n`.  This lets us invert our previous rule. -->
+
+<p>只有一种方式能够证明对于任意 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code> 有 <code class="highlighter-rouge">suc m ≤ suc n</code>。这让我们能够反演（invert）之前的规则。</p>
+
+<pre class="Agda"><a id="inv-s≤s"></a><a id="7363" href="/PLFA-zh/Relations/#7363" class="Function">inv-s≤s</a> <a id="7371" class="Symbol">:</a> <a id="7373" class="Symbol">∀</a> <a id="7375" class="Symbol">{</a><a id="7376" href="/PLFA-zh/Relations/#7376" class="Bound">m</a> <a id="7378" href="/PLFA-zh/Relations/#7378" class="Bound">n</a> <a id="7380" class="Symbol">:</a> <a id="7382" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="7383" class="Symbol">}</a>
+  <a id="7387" class="Symbol">→</a> <a id="7389" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="7393" href="/PLFA-zh/Relations/#7376" class="Bound">m</a> <a id="7395" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="7397" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="7401" href="/PLFA-zh/Relations/#7378" class="Bound">n</a>
+    <a id="7407" class="Comment">-------------</a>
+  <a id="7423" class="Symbol">→</a> <a id="7425" href="/PLFA-zh/Relations/#7376" class="Bound">m</a> <a id="7427" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="7429" href="/PLFA-zh/Relations/#7378" class="Bound">n</a>
+<a id="7431" href="/PLFA-zh/Relations/#7363" class="Function">inv-s≤s</a> <a id="7439" class="Symbol">(</a><a id="7440" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="7444" href="/PLFA-zh/Relations/#7444" class="Bound">m≤n</a><a id="7447" class="Symbol">)</a> <a id="7449" class="Symbol">=</a> <a id="7451" href="/PLFA-zh/Relations/#7444" class="Bound">m≤n</a></pre>
+
+<!-- Not every rule is invertible; indeed, the rule for `z≤n` has
+no non-implicit hypotheses, so there is nothing to invert.
+But often inversions of this kind hold. -->
+
+<p>并不是所有规则都可以反演。实际上，<code class="highlighter-rouge">z≤n</code> 的规则没有非隐式的假设，因此它没有可以被反演的规则。但这种反演通常是成立的。</p>
+
+<!-- Another example of inversion is showing that there is
+only one way a number can be less than or equal to zero. -->
+
+<p>反演的另一个例子是证明只存在一种情况使得一个数字能够小于或等于零。</p>
+
+<pre class="Agda"><a id="inv-z≤n"></a><a id="7886" href="/PLFA-zh/Relations/#7886" class="Function">inv-z≤n</a> <a id="7894" class="Symbol">:</a> <a id="7896" class="Symbol">∀</a> <a id="7898" class="Symbol">{</a><a id="7899" href="/PLFA-zh/Relations/#7899" class="Bound">m</a> <a id="7901" class="Symbol">:</a> <a id="7903" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="7904" class="Symbol">}</a>
+  <a id="7908" class="Symbol">→</a> <a id="7910" href="/PLFA-zh/Relations/#7899" class="Bound">m</a> <a id="7912" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="7914" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>
+    <a id="7923" class="Comment">--------</a>
+  <a id="7934" class="Symbol">→</a> <a id="7936" href="/PLFA-zh/Relations/#7899" class="Bound">m</a> <a id="7938" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">≡</a> <a id="7940" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>
+<a id="7945" href="/PLFA-zh/Relations/#7886" class="Function">inv-z≤n</a> <a id="7953" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a> <a id="7957" class="Symbol">=</a> <a id="7959" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a></pre>
+
+<!-- ## Properties of ordering relations -->
+
+<h2 id="序关系的性质">序关系的性质</h2>
+<!-- Relations pop up all the time, and mathematicians have agreed
+on names for some of the most common properties.
+
+* _Reflexive_. For all `n`, the relation `n ≤ n` holds.
+* _Transitive_. For all `m`, `n`, and `p`, if `m ≤ n` and
+`n ≤ p` hold, then `m ≤ p` holds.
+* _Anti-symmetric_. For all `m` and `n`, if both `m ≤ n` and
+`n ≤ m` hold, then `m ≡ n` holds.
+* _Total_. For all `m` and `n`, either `m ≤ n` or `n ≤ m`
+holds. -->
+
+<p>数学家对于关系的常见性质给出了约定的名称。</p>
+
+<ul>
+  <li><strong>自反（Reflexive）</strong>：对于所有的 <code class="highlighter-rouge">n</code>，关系 <code class="highlighter-rouge">n ≤ n</code> 成立。</li>
+  <li><strong>传递（Transitive）</strong>：对于所有的 <code class="highlighter-rouge">m</code>、 <code class="highlighter-rouge">n</code> 和 <code class="highlighter-rouge">p</code>，如果 <code class="highlighter-rouge">m ≤ n</code> 和 <code class="highlighter-rouge">n ≤ p</code>
+成立，那么 <code class="highlighter-rouge">m ≤ p</code> 也成立。</li>
+  <li><strong>反对称（Anti-symmetric）</strong>：对于所有的 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，如果 <code class="highlighter-rouge">m ≤ n</code> 和 <code class="highlighter-rouge">n ≤ m</code>
+同时成立，那么 <code class="highlighter-rouge">m ≡ n</code> 成立。</li>
+  <li><strong>完全（Total）</strong>：对于所有的 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，<code class="highlighter-rouge">m ≤ n</code> 或者 <code class="highlighter-rouge">n ≤ m</code> 成立。</li>
+</ul>
+
+<!-- The relation `_≤_` satisfies all four of these properties. -->
+
+<p><code class="highlighter-rouge">_≤_</code> 关系满足上述四条性质。</p>
+
+<!-- There are also names for some combinations of these properties.
+
+* _Preorder_. Any relation that is reflexive and transitive.
+* _Partial order_. Any preorder that is also anti-symmetric.
+* _Total order_. Any partial order that is also total. -->
+
+<p>对于上述性质的组合也有约定的名称。</p>
+
+<ul>
+  <li><strong>预序（Preorder）</strong>：满足自反和传递的关系。</li>
+  <li><strong>偏序（Partial Order）</strong>：满足反对称的预序。</li>
+  <li><strong>全序（Total Order）</strong>：满足完全的偏序。</li>
+</ul>
+
+<!-- If you ever bump into a relation at a party, you now know how
+to make small talk, by asking it whether it is reflexive, transitive,
+anti-symmetric, and total. Or instead you might ask whether it is a
+preorder, partial order, or total order. -->
+
+<p>如果你进入了关于关系的聚会，你现在知道怎么样和人讨论了，可以讨论关于自反、传递、反对称和完全，或者问一问这是不是预序、偏序或者全序。</p>
+
+<!-- Less frivolously, if you ever bump into a relation while reading a
+technical paper, this gives you a way to orient yourself, by checking
+whether or not it is a preorder, partial order, or total order.  A
+careful author will often call out these properties---or their
+lack---for instance by saying that a newly introduced relation is a
+partial order but not a total order. -->
+
+<p>更认真的来说，如果你在阅读论文时碰到了一个关系，本文的介绍让你可以对关系有基本的了解和判断，来判断这个关系是不是预序、偏序或者全序。一个认真的作者一般会在文章指出这个关系具有（或者缺少）
+上述性质，比如说指出新定义的关系是一个偏序而不是全序。</p>
+
+<!-- #### Exercise `orderings` {#orderings} -->
+
+<h4 id="orderings">练习 <code class="highlighter-rouge">orderings</code></h4>
+
+<!-- Give an example of a preorder that is not a partial order. -->
+
+<p>给出一个不是偏序的预序的例子。</p>
+
+<!-- <pre class="Agda"><a id="10295" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="10348" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- Give an example of a partial order that is not a total order. -->
+
+<p>给出一个不是全序的偏序的例子。</p>
+
+<!-- <pre class="Agda"><a id="10495" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="10548" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- ## Reflexivity -->
+
+<h2 id="自反性">自反性</h2>
+
+<!-- The first property to prove about comparison is that it is reflexive:
+for any natural `n`, the relation `n ≤ n` holds.  We follow the
+convention in the standard library and make the argument implicit,
+as that will make it easier to invoke reflexivity: -->
+
+<p>我们第一个来证明的性质是自反性：对于任意自然数 <code class="highlighter-rouge">n</code>，关系 <code class="highlighter-rouge">n ≤ n</code> 成立。我们使用标准库的惯例来隐式申明参数，在使用自反性的证明时这样可以更加方便。</p>
+
+<pre class="Agda"><a id="≤-refl"></a><a id="10980" href="/PLFA-zh/Relations/#10980" class="Function">≤-refl</a> <a id="10987" class="Symbol">:</a> <a id="10989" class="Symbol">∀</a> <a id="10991" class="Symbol">{</a><a id="10992" href="/PLFA-zh/Relations/#10992" class="Bound">n</a> <a id="10994" class="Symbol">:</a> <a id="10996" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="10997" class="Symbol">}</a>
+    <a id="11003" class="Comment">-----</a>
+  <a id="11011" class="Symbol">→</a> <a id="11013" href="/PLFA-zh/Relations/#10992" class="Bound">n</a> <a id="11015" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="11017" href="/PLFA-zh/Relations/#10992" class="Bound">n</a>
+<a id="11019" href="/PLFA-zh/Relations/#10980" class="Function">≤-refl</a> <a id="11026" class="Symbol">{</a><a id="11027" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a><a id="11031" class="Symbol">}</a> <a id="11033" class="Symbol">=</a> <a id="11035" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="11039" href="/PLFA-zh/Relations/#10980" class="Function">≤-refl</a> <a id="11046" class="Symbol">{</a><a id="11047" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="11051" href="/PLFA-zh/Relations/#11051" class="Bound">n</a><a id="11052" class="Symbol">}</a> <a id="11054" class="Symbol">=</a> <a id="11056" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="11060" href="/PLFA-zh/Relations/#10980" class="Function">≤-refl</a></pre>
+
+<!-- The proof is a straightforward induction on the implicit argument `n`.
+In the base case, `zero ≤ zero` holds by `z≤n`.  In the inductive
+case, the inductive hypothesis `≤-refl {n}` gives us a proof of `n ≤
+n`, and applying `s≤s` to that yields a proof of `suc n ≤ suc n`. -->
+
+<p>这个证明直接在 <code class="highlighter-rouge">n</code> 上进行归纳。在起始步骤中，<code class="highlighter-rouge">zero ≤ zero</code> 由 <code class="highlighter-rouge">z≤n</code> 证明；在归纳步骤中，归纳假设 <code class="highlighter-rouge">≤-refl {n}</code> 给我们带来了 <code class="highlighter-rouge">n ≤ n</code> 的证明，我们只需要使用 <code class="highlighter-rouge">s≤s</code>，就可以获得
+<code class="highlighter-rouge">suc n ≤ suc n</code> 的证明。</p>
+
+<!-- It is a good exercise to prove reflexivity interactively in Emacs,
+using holes and the `C-c C-c`, `C-c C-,`, and `C-c C-r` commands. -->
+
+<p>在 Emacs 中来交互式地证明自反性是一个很好的练习，可以使用洞，以及 <code class="highlighter-rouge">C-c C-c</code>、
+<code class="highlighter-rouge">C-c C-,</code> 和 <code class="highlighter-rouge">C-c C-r</code> 命令。</p>
+
+<!-- ## Transitivity -->
+
+<h2 id="传递性">传递性</h2>
+
+<!-- The second property to prove about comparison is that it is
+transitive: for any naturals `m`, `n`, and `p`, if `m ≤ n` and `n ≤ p`
+hold, then `m ≤ p` holds.  Again, `m`, `n`, and `p` are implicit: -->
+
+<p>我们第二个证明的性质是传递性：对于任意自然数 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，如果 <code class="highlighter-rouge">m ≤ n</code> 和 <code class="highlighter-rouge">n ≤ p</code>
+成立，那么 <code class="highlighter-rouge">m ≤ p</code> 成立。同样，<code class="highlighter-rouge">m</code>、<code class="highlighter-rouge">n</code> 和 <code class="highlighter-rouge">p</code> 是隐式参数：</p>
+
+<pre class="Agda"><a id="≤-trans"></a><a id="12099" href="/PLFA-zh/Relations/#12099" class="Function">≤-trans</a> <a id="12107" class="Symbol">:</a> <a id="12109" class="Symbol">∀</a> <a id="12111" class="Symbol">{</a><a id="12112" href="/PLFA-zh/Relations/#12112" class="Bound">m</a> <a id="12114" href="/PLFA-zh/Relations/#12114" class="Bound">n</a> <a id="12116" href="/PLFA-zh/Relations/#12116" class="Bound">p</a> <a id="12118" class="Symbol">:</a> <a id="12120" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="12121" class="Symbol">}</a>
+  <a id="12125" class="Symbol">→</a> <a id="12127" href="/PLFA-zh/Relations/#12112" class="Bound">m</a> <a id="12129" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="12131" href="/PLFA-zh/Relations/#12114" class="Bound">n</a>
+  <a id="12135" class="Symbol">→</a> <a id="12137" href="/PLFA-zh/Relations/#12114" class="Bound">n</a> <a id="12139" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="12141" href="/PLFA-zh/Relations/#12116" class="Bound">p</a>
+    <a id="12147" class="Comment">-----</a>
+  <a id="12155" class="Symbol">→</a> <a id="12157" href="/PLFA-zh/Relations/#12112" class="Bound">m</a> <a id="12159" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="12161" href="/PLFA-zh/Relations/#12116" class="Bound">p</a>
+<a id="12163" href="/PLFA-zh/Relations/#12099" class="Function">≤-trans</a> <a id="12171" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>       <a id="12181" class="Symbol">_</a>          <a id="12192" class="Symbol">=</a>  <a id="12195" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="12199" href="/PLFA-zh/Relations/#12099" class="Function">≤-trans</a> <a id="12207" class="Symbol">(</a><a id="12208" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="12212" href="/PLFA-zh/Relations/#12212" class="Bound">m≤n</a><a id="12215" class="Symbol">)</a> <a id="12217" class="Symbol">(</a><a id="12218" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="12222" href="/PLFA-zh/Relations/#12222" class="Bound">n≤p</a><a id="12225" class="Symbol">)</a>  <a id="12228" class="Symbol">=</a>  <a id="12231" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="12235" class="Symbol">(</a><a id="12236" href="/PLFA-zh/Relations/#12099" class="Function">≤-trans</a> <a id="12244" href="/PLFA-zh/Relations/#12212" class="Bound">m≤n</a> <a id="12248" href="/PLFA-zh/Relations/#12222" class="Bound">n≤p</a><a id="12251" class="Symbol">)</a></pre>
+
+<!-- Here the proof is by induction on the _evidence_ that `m ≤ n`.  In the
+base case, the first inequality holds by `z≤n` and must show `zero ≤
+p`, which follows immediately by `z≤n`.  In this case, the fact that
+`n ≤ p` is irrelevant, and we write `_` as the pattern to indicate
+that the corresponding evidence is unused. -->
+
+<p>这里我们在 <code class="highlighter-rouge">m ≤ n</code> 的<strong>证据（Evidence）</strong>上进行归纳。在起始步骤里，第一个不等式因为 <code class="highlighter-rouge">z≤n</code> 而成立，那么结论亦可由 <code class="highlighter-rouge">z≤n</code> 而得出。在这里，<code class="highlighter-rouge">n ≤ p</code> 的证明是不需要的，我们用 <code class="highlighter-rouge">_</code> 来表示这个证明没有被使用。</p>
+
+<!-- In the inductive case, the first inequality holds by `s≤s m≤n`
+and the second inequality by `s≤s n≤p`, and so we are given
+`suc m ≤ suc n` and `suc n ≤ suc p`, and must show `suc m ≤ suc p`.
+The inductive hypothesis `≤-trans m≤n n≤p` establishes
+that `m ≤ p`, and our goal follows by applying `s≤s`. -->
+
+<p>在归纳步骤中，第一个不等式因为 <code class="highlighter-rouge">s≤s m≤n</code> 而成立，第二个不等式因为 <code class="highlighter-rouge">s≤s n≤p</code> 而成立，所以我们已知 <code class="highlighter-rouge">suc m ≤ suc n</code> 和 <code class="highlighter-rouge">suc n ≤ suc p</code>，求证 <code class="highlighter-rouge">suc m ≤ suc p</code>。通过归纳假设 <code class="highlighter-rouge">≤-trans m≤n n≤p</code>，我们得知 <code class="highlighter-rouge">m ≤ p</code>，在此之上使用 <code class="highlighter-rouge">s≤s</code> 即可证。</p>
+
+<!-- The case `≤-trans (s≤s m≤n) z≤n` cannot arise, since the first
+inequality implies the middle value is `suc n` while the second
+inequality implies that it is `zero`.  Agda can determine that such a
+case cannot arise, and does not require (or permit) it to be listed. -->
+
+<p><code class="highlighter-rouge">≤-trans (s≤s m≤n) z≤n</code> 不可能发生，因为第一个不等式告诉我们中间的数是一个 <code class="highlighter-rouge">suc n</code>，而第二个不等式告诉我们中间的书是 <code class="highlighter-rouge">zero</code>。Agda 可以推断这样的情况不可能发现，所以我们不需要
+（也不可以）列出这种情况。</p>
+
+<!-- Alternatively, we could make the implicit parameters explicit: -->
+
+<p>我们也可以将隐式参数显式地声明。</p>
+
+<pre class="Agda"><a id="≤-trans′"></a><a id="13741" href="/PLFA-zh/Relations/#13741" class="Function">≤-trans′</a> <a id="13750" class="Symbol">:</a> <a id="13752" class="Symbol">∀</a> <a id="13754" class="Symbol">(</a><a id="13755" href="/PLFA-zh/Relations/#13755" class="Bound">m</a> <a id="13757" href="/PLFA-zh/Relations/#13757" class="Bound">n</a> <a id="13759" href="/PLFA-zh/Relations/#13759" class="Bound">p</a> <a id="13761" class="Symbol">:</a> <a id="13763" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="13764" class="Symbol">)</a>
+  <a id="13768" class="Symbol">→</a> <a id="13770" href="/PLFA-zh/Relations/#13755" class="Bound">m</a> <a id="13772" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="13774" href="/PLFA-zh/Relations/#13757" class="Bound">n</a>
+  <a id="13778" class="Symbol">→</a> <a id="13780" href="/PLFA-zh/Relations/#13757" class="Bound">n</a> <a id="13782" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="13784" href="/PLFA-zh/Relations/#13759" class="Bound">p</a>
+    <a id="13790" class="Comment">-----</a>
+  <a id="13798" class="Symbol">→</a> <a id="13800" href="/PLFA-zh/Relations/#13755" class="Bound">m</a> <a id="13802" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="13804" href="/PLFA-zh/Relations/#13759" class="Bound">p</a>
+<a id="13806" href="/PLFA-zh/Relations/#13741" class="Function">≤-trans′</a> <a id="13815" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>    <a id="13823" class="Symbol">_</a>       <a id="13831" class="Symbol">_</a>       <a id="13839" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>       <a id="13849" class="Symbol">_</a>          <a id="13860" class="Symbol">=</a>  <a id="13863" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="13867" href="/PLFA-zh/Relations/#13741" class="Function">≤-trans′</a> <a id="13876" class="Symbol">(</a><a id="13877" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="13881" href="/PLFA-zh/Relations/#13881" class="Bound">m</a><a id="13882" class="Symbol">)</a> <a id="13884" class="Symbol">(</a><a id="13885" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="13889" href="/PLFA-zh/Relations/#13889" class="Bound">n</a><a id="13890" class="Symbol">)</a> <a id="13892" class="Symbol">(</a><a id="13893" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="13897" href="/PLFA-zh/Relations/#13897" class="Bound">p</a><a id="13898" class="Symbol">)</a> <a id="13900" class="Symbol">(</a><a id="13901" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="13905" href="/PLFA-zh/Relations/#13905" class="Bound">m≤n</a><a id="13908" class="Symbol">)</a> <a id="13910" class="Symbol">(</a><a id="13911" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="13915" href="/PLFA-zh/Relations/#13915" class="Bound">n≤p</a><a id="13918" class="Symbol">)</a>  <a id="13921" class="Symbol">=</a>  <a id="13924" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="13928" class="Symbol">(</a><a id="13929" href="/PLFA-zh/Relations/#13741" class="Function">≤-trans′</a> <a id="13938" href="/PLFA-zh/Relations/#13881" class="Bound">m</a> <a id="13940" href="/PLFA-zh/Relations/#13889" class="Bound">n</a> <a id="13942" href="/PLFA-zh/Relations/#13897" class="Bound">p</a> <a id="13944" href="/PLFA-zh/Relations/#13905" class="Bound">m≤n</a> <a id="13948" href="/PLFA-zh/Relations/#13915" class="Bound">n≤p</a><a id="13951" class="Symbol">)</a></pre>
+
+<!-- One might argue that this is clearer or one might argue that the extra
+length obscures the essence of the proof.  We will usually opt for
+shorter proofs. -->
+
+<p>有人说这样的证明更加的清晰，也有人说这个更长的证明让人难以抓住证明的重点。我们一般选择使用简短的证明。</p>
+
+<!-- The technique of induction on evidence that a property holds (e.g.,
+inducting on evidence that `m ≤ n`)---rather than induction on
+values of which the property holds (e.g., inducting on `m`)---will turn
+out to be immensely valuable, and one that we use often. -->
+
+<p>对于性质成立证明进行的归纳（如上文中对于 <code class="highlighter-rouge">m ≤ n</code> 的证明进行归纳），相比于对于性质成立的值进行的归纳
+（如对于 <code class="highlighter-rouge">m</code> 进行归纳），有非常大的价值。我们会经常使用这样的方法。</p>
+
+<!-- Again, it is a good exercise to prove transitivity interactively in Emacs,
+using holes and the `C-c C-c`, `C-c C-,`, and `C-c C-r` commands. -->
+
+<p>同样，在 Emacs 中来交互式地证明传递性是一个很好的练习，可以使用洞，以及 <code class="highlighter-rouge">C-c C-c</code>、
+<code class="highlighter-rouge">C-c C-,</code> 和 <code class="highlighter-rouge">C-c C-r</code> 命令。</p>
+
+<!-- ## Anti-symmetry -->
+
+<h2 id="反对称性">反对称性</h2>
+
+<!-- The third property to prove about comparison is that it is
+antisymmetric: for all naturals `m` and `n`, if both `m ≤ n` and `n ≤
+m` hold, then `m ≡ n` holds: -->
+
+<p>我们证明的第三个性质是反对称性：对于所有的自然数 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，如果 <code class="highlighter-rouge">m ≤ n</code> 和 <code class="highlighter-rouge">n ≤ m</code>
+同时成立，那么 <code class="highlighter-rouge">m ≡ n</code> 成立：</p>
+
+<pre class="Agda"><a id="≤-antisym"></a><a id="15110" href="/PLFA-zh/Relations/#15110" class="Function">≤-antisym</a> <a id="15120" class="Symbol">:</a> <a id="15122" class="Symbol">∀</a> <a id="15124" class="Symbol">{</a><a id="15125" href="/PLFA-zh/Relations/#15125" class="Bound">m</a> <a id="15127" href="/PLFA-zh/Relations/#15127" class="Bound">n</a> <a id="15129" class="Symbol">:</a> <a id="15131" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="15132" class="Symbol">}</a>
+  <a id="15136" class="Symbol">→</a> <a id="15138" href="/PLFA-zh/Relations/#15125" class="Bound">m</a> <a id="15140" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="15142" href="/PLFA-zh/Relations/#15127" class="Bound">n</a>
+  <a id="15146" class="Symbol">→</a> <a id="15148" href="/PLFA-zh/Relations/#15127" class="Bound">n</a> <a id="15150" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="15152" href="/PLFA-zh/Relations/#15125" class="Bound">m</a>
+    <a id="15158" class="Comment">-----</a>
+  <a id="15166" class="Symbol">→</a> <a id="15168" href="/PLFA-zh/Relations/#15125" class="Bound">m</a> <a id="15170" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">≡</a> <a id="15172" href="/PLFA-zh/Relations/#15127" class="Bound">n</a>
+<a id="15174" href="/PLFA-zh/Relations/#15110" class="Function">≤-antisym</a> <a id="15184" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>       <a id="15194" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>        <a id="15205" class="Symbol">=</a>  <a id="15208" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+<a id="15213" href="/PLFA-zh/Relations/#15110" class="Function">≤-antisym</a> <a id="15223" class="Symbol">(</a><a id="15224" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="15228" href="/PLFA-zh/Relations/#15228" class="Bound">m≤n</a><a id="15231" class="Symbol">)</a> <a id="15233" class="Symbol">(</a><a id="15234" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="15238" href="/PLFA-zh/Relations/#15238" class="Bound">n≤m</a><a id="15241" class="Symbol">)</a>  <a id="15244" class="Symbol">=</a>  <a id="15247" href="https://agda.github.io/agda-stdlib/v0.17/Relation.Binary.PropositionalEquality.html#1170" class="Function">cong</a> <a id="15252" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="15256" class="Symbol">(</a><a id="15257" href="/PLFA-zh/Relations/#15110" class="Function">≤-antisym</a> <a id="15267" href="/PLFA-zh/Relations/#15228" class="Bound">m≤n</a> <a id="15271" href="/PLFA-zh/Relations/#15238" class="Bound">n≤m</a><a id="15274" class="Symbol">)</a></pre>
+
+<!-- Again, the proof is by induction over the evidence that `m ≤ n`
+and `n ≤ m` hold. -->
+
+<p>同样，我们对于 <code class="highlighter-rouge">m ≤ n</code> 和 <code class="highlighter-rouge">n ≤ m</code> 的证明进行归纳。</p>
+
+<!-- In the base case, both inequalities hold by `z≤n`, and so we are given
+`zero ≤ zero` and `zero ≤ zero` and must show `zero ≡ zero`, which
+follows by reflexivity.  (Reflexivity of equality, that is, not
+reflexivity of inequality.) -->
+
+<p>在起始步骤中，两个不等式都因为 <code class="highlighter-rouge">z≤n</code> 而成立。因此我们已知 <code class="highlighter-rouge">zero ≤ zero</code> 和 <code class="highlighter-rouge">zero ≤ zero</code>，求证 <code class="highlighter-rouge">zero ≡ zero</code>，由自反性可证。（注：由等式的自反性可证，而不是不等式的自反性）</p>
+
+<!-- In the inductive case, the first inequality holds by `s≤s m≤n` and the
+second inequality holds by `s≤s n≤m`, and so we are given `suc m ≤ suc n`
+and `suc n ≤ suc m` and must show `suc m ≡ suc n`.  The inductive
+hypothesis `≤-antisym m≤n n≤m` establishes that `m ≡ n`, and our goal
+follows by congruence.
+{::comment}
+
+在归纳步骤中，第一个不等式因为 `s≤s m≤n` 而成立，第二个等式因为 `s≤s n≤m` 而成立。因此我们已知
+`suc m ≤ suc n` 和 `suc n ≤ suc m`，求证 `suc m ≡ suc n`。归纳假设 `≤-antisym m≤n n≤m`
+可以证明 `m ≡ n`，因此我们可以使用同余性完成证明。
+
+
+{::comment}
+#### Exercise `≤-antisym-cases` {#leq-antisym-cases} -->
+
+<h4 id="leq-antisym-cases">练习 <code class="highlighter-rouge">≤-antisym-cases</code></h4>
+
+<!-- The above proof omits cases where one argument is `z≤n` and one
+argument is `s≤s`.  Why is it ok to omit them? -->
+
+<p>上面的证明中省略了一个参数是 <code class="highlighter-rouge">z≤n</code>，另一个参数是 <code class="highlighter-rouge">s≤s</code> 的情况。为什么可以省略这种情况？</p>
+
+<!-- <pre class="Agda"><a id="16609" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="16662" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- ## Total -->
+
+<h2 id="完全性">完全性</h2>
+
+<!-- The fourth property to prove about comparison is that it is total:
+for any naturals `m` and `n` either `m ≤ n` or `n ≤ m`, or both if
+`m` and `n` are equal. -->
+
+<p>我们证明的第四个性质是完全性：对于任何自然数 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，<code class="highlighter-rouge">m ≤ n</code> 或者 <code class="highlighter-rouge">n ≤ m</code> 成立。在 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code> 相等时，两者同时成立。</p>
+
+<!-- We specify what it means for inequality to be total: -->
+
+<p>我们首先来说明怎么样不等式才是完全的：</p>
+
+<pre class="Agda"><a id="17084" class="Keyword">data</a> <a id="Total"></a><a id="17089" href="/PLFA-zh/Relations/#17089" class="Datatype">Total</a> <a id="17095" class="Symbol">(</a><a id="17096" href="/PLFA-zh/Relations/#17096" class="Bound">m</a> <a id="17098" href="/PLFA-zh/Relations/#17098" class="Bound">n</a> <a id="17100" class="Symbol">:</a> <a id="17102" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="17103" class="Symbol">)</a> <a id="17105" class="Symbol">:</a> <a id="17107" class="PrimitiveType">Set</a> <a id="17111" class="Keyword">where</a>
+
+  <a id="Total.forward"></a><a id="17120" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="17128" class="Symbol">:</a>
+      <a id="17136" href="/PLFA-zh/Relations/#17096" class="Bound">m</a> <a id="17138" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="17140" href="/PLFA-zh/Relations/#17098" class="Bound">n</a>
+      <a id="17148" class="Comment">---------</a>
+    <a id="17162" class="Symbol">→</a> <a id="17164" href="/PLFA-zh/Relations/#17089" class="Datatype">Total</a> <a id="17170" href="/PLFA-zh/Relations/#17096" class="Bound">m</a> <a id="17172" href="/PLFA-zh/Relations/#17098" class="Bound">n</a>
+
+  <a id="Total.flipped"></a><a id="17177" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="17185" class="Symbol">:</a>
+      <a id="17193" href="/PLFA-zh/Relations/#17098" class="Bound">n</a> <a id="17195" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="17197" href="/PLFA-zh/Relations/#17096" class="Bound">m</a>
+      <a id="17205" class="Comment">---------</a>
+    <a id="17219" class="Symbol">→</a> <a id="17221" href="/PLFA-zh/Relations/#17089" class="Datatype">Total</a> <a id="17227" href="/PLFA-zh/Relations/#17096" class="Bound">m</a> <a id="17229" href="/PLFA-zh/Relations/#17098" class="Bound">n</a></pre>
+
+<!-- Evidence that `Total m n` holds is either of the form
+`forward m≤n` or `flipped n≤m`, where `m≤n` and `n≤m` are
+evidence of `m ≤ n` and `n ≤ m` respectively. -->
+
+<p><code class="highlighter-rouge">Total m n</code> 成立的证明有两种形式：<code class="highlighter-rouge">forward m≤n</code> 或者 <code class="highlighter-rouge">flipped n≤m</code>，其中
+<code class="highlighter-rouge">m≤n</code> 和 <code class="highlighter-rouge">n≤m</code> 分别是 <code class="highlighter-rouge">m ≤ n</code> 和 <code class="highlighter-rouge">n ≤ m</code> 的证明。</p>
+
+<!-- (For those familiar with logic, the above definition
+could also be written as a disjunction. Disjunctions will
+be introduced in Chapter [Connectives](/PLFA-zh/Connectives/).) -->
+
+<p>（如果你对于逻辑学有所了解，上面的定义可以由析取（Disjunction）表示。我们会在 <a href="/PLFA-zh/Connectives/">Connectives</a> 章节介绍析取。）</p>
+
+<!-- This is our first use of a datatype with _parameters_,
+in this case `m` and `n`.  It is equivalent to the following
+indexed datatype: -->
+
+<p>这是我们第一次使用带<em>参数</em>的数据类型，这里 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code> 是参数。这等同于下面的索引数据类型：</p>
+
+<pre class="Agda"><a id="18012" class="Keyword">data</a> <a id="Total′"></a><a id="18017" href="/PLFA-zh/Relations/#18017" class="Datatype">Total′</a> <a id="18024" class="Symbol">:</a> <a id="18026" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="18028" class="Symbol">→</a> <a id="18030" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="18032" class="Symbol">→</a> <a id="18034" class="PrimitiveType">Set</a> <a id="18038" class="Keyword">where</a>
+
+  <a id="Total′.forward′"></a><a id="18047" href="/PLFA-zh/Relations/#18047" class="InductiveConstructor">forward′</a> <a id="18056" class="Symbol">:</a> <a id="18058" class="Symbol">∀</a> <a id="18060" class="Symbol">{</a><a id="18061" href="/PLFA-zh/Relations/#18061" class="Bound">m</a> <a id="18063" href="/PLFA-zh/Relations/#18063" class="Bound">n</a> <a id="18065" class="Symbol">:</a> <a id="18067" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="18068" class="Symbol">}</a>
+    <a id="18074" class="Symbol">→</a> <a id="18076" href="/PLFA-zh/Relations/#18061" class="Bound">m</a> <a id="18078" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="18080" href="/PLFA-zh/Relations/#18063" class="Bound">n</a>
+      <a id="18088" class="Comment">----------</a>
+    <a id="18103" class="Symbol">→</a> <a id="18105" href="/PLFA-zh/Relations/#18017" class="Datatype">Total′</a> <a id="18112" href="/PLFA-zh/Relations/#18061" class="Bound">m</a> <a id="18114" href="/PLFA-zh/Relations/#18063" class="Bound">n</a>
+
+  <a id="Total′.flipped′"></a><a id="18119" href="/PLFA-zh/Relations/#18119" class="InductiveConstructor">flipped′</a> <a id="18128" class="Symbol">:</a> <a id="18130" class="Symbol">∀</a> <a id="18132" class="Symbol">{</a><a id="18133" href="/PLFA-zh/Relations/#18133" class="Bound">m</a> <a id="18135" href="/PLFA-zh/Relations/#18135" class="Bound">n</a> <a id="18137" class="Symbol">:</a> <a id="18139" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="18140" class="Symbol">}</a>
+    <a id="18146" class="Symbol">→</a> <a id="18148" href="/PLFA-zh/Relations/#18135" class="Bound">n</a> <a id="18150" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="18152" href="/PLFA-zh/Relations/#18133" class="Bound">m</a>
+      <a id="18160" class="Comment">----------</a>
+    <a id="18175" class="Symbol">→</a> <a id="18177" href="/PLFA-zh/Relations/#18017" class="Datatype">Total′</a> <a id="18184" href="/PLFA-zh/Relations/#18133" class="Bound">m</a> <a id="18186" href="/PLFA-zh/Relations/#18135" class="Bound">n</a></pre>
+
+<!-- Each parameter of the type translates as an implicit parameter of each
+constructor.  Unlike an indexed datatype, where the indexes can vary
+(as in `zero ≤ n` and `suc m ≤ suc n`), in a parameterised datatype
+the parameters must always be the same (as in `Total m n`).
+Parameterised declarations are shorter, easier to read, and
+occasionally aid Agda's termination checker, so we will use them in
+preference to indexed types when possible. -->
+
+<p>类型里的每个参数都转换成构造器的一个隐式参数。索引数据类型中的索引可以变化，正如在
+<code class="highlighter-rouge">zero ≤ n</code> 和 <code class="highlighter-rouge">suc m ≤ suc n</code> 中那样，而参数化数据类型不一样，其参数必须保持相同，正如在 <code class="highlighter-rouge">Total m n</code> 中那样。参数化的声明更短，更易于阅读，而且有时可以帮助到 Agda 的终结检查器，所以我们尽可能地使用它们，而不是索引数据类型。</p>
+
+<!-- With that preliminary out of the way, we specify and prove totality: -->
+
+<p>在上述准备工作完成后，我们定义并证明完全性。</p>
+
+<pre class="Agda"><a id="≤-total"></a><a id="18962" href="/PLFA-zh/Relations/#18962" class="Function">≤-total</a> <a id="18970" class="Symbol">:</a> <a id="18972" class="Symbol">∀</a> <a id="18974" class="Symbol">(</a><a id="18975" href="/PLFA-zh/Relations/#18975" class="Bound">m</a> <a id="18977" href="/PLFA-zh/Relations/#18977" class="Bound">n</a> <a id="18979" class="Symbol">:</a> <a id="18981" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="18982" class="Symbol">)</a> <a id="18984" class="Symbol">→</a> <a id="18986" href="/PLFA-zh/Relations/#17089" class="Datatype">Total</a> <a id="18992" href="/PLFA-zh/Relations/#18975" class="Bound">m</a> <a id="18994" href="/PLFA-zh/Relations/#18977" class="Bound">n</a>
+<a id="18996" href="/PLFA-zh/Relations/#18962" class="Function">≤-total</a> <a id="19004" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>    <a id="19012" href="/PLFA-zh/Relations/#19012" class="Bound">n</a>                         <a id="19038" class="Symbol">=</a>  <a id="19041" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="19049" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="19053" href="/PLFA-zh/Relations/#18962" class="Function">≤-total</a> <a id="19061" class="Symbol">(</a><a id="19062" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="19066" href="/PLFA-zh/Relations/#19066" class="Bound">m</a><a id="19067" class="Symbol">)</a> <a id="19069" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>                      <a id="19095" class="Symbol">=</a>  <a id="19098" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="19106" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="19110" href="/PLFA-zh/Relations/#18962" class="Function">≤-total</a> <a id="19118" class="Symbol">(</a><a id="19119" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="19123" href="/PLFA-zh/Relations/#19123" class="Bound">m</a><a id="19124" class="Symbol">)</a> <a id="19126" class="Symbol">(</a><a id="19127" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="19131" href="/PLFA-zh/Relations/#19131" class="Bound">n</a><a id="19132" class="Symbol">)</a> <a id="19134" class="Keyword">with</a> <a id="19139" href="/PLFA-zh/Relations/#18962" class="Function">≤-total</a> <a id="19147" href="/PLFA-zh/Relations/#19123" class="Bound">m</a> <a id="19149" href="/PLFA-zh/Relations/#19131" class="Bound">n</a>
+<a id="19151" class="Symbol">...</a>                        <a id="19178" class="Symbol">|</a> <a id="19180" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="19188" href="/PLFA-zh/Relations/#19188" class="Bound">m≤n</a>  <a id="19193" class="Symbol">=</a>  <a id="19196" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="19204" class="Symbol">(</a><a id="19205" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="19209" href="/PLFA-zh/Relations/#19188" class="Bound">m≤n</a><a id="19212" class="Symbol">)</a>
+<a id="19214" class="Symbol">...</a>                        <a id="19241" class="Symbol">|</a> <a id="19243" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="19251" href="/PLFA-zh/Relations/#19251" class="Bound">n≤m</a>  <a id="19256" class="Symbol">=</a>  <a id="19259" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="19267" class="Symbol">(</a><a id="19268" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="19272" href="/PLFA-zh/Relations/#19251" class="Bound">n≤m</a><a id="19275" class="Symbol">)</a></pre>
+
+<!-- In this case the proof is by induction over both the first
+and second arguments.  We perform a case analysis:
+
+* _First base case_: If the first argument is `zero` and the
+  second argument is `n` then the forward case holds,
+  with `z≤n` as evidence that `zero ≤ n`.
+
+* _Second base case_: If the first argument is `suc m` and the
+  second argument is `zero` then the flipped case holds, with
+  `z≤n` as evidence that `zero ≤ suc m`.
+
+* _Inductive case_: If the first argument is `suc m` and the
+  second argument is `suc n`, then the inductive hypothesis
+  `≤-total m n` establishes one of the following:
+
+  + The forward case of the inductive hypothesis holds with `m≤n` as
+    evidence that `m ≤ n`, from which it follows that the forward case of the
+    proposition holds with `s≤s m≤n` as evidence that `suc m ≤ suc n`.
+
+  + The flipped case of the inductive hypothesis holds with `n≤m` as
+    evidence that `n ≤ m`, from which it follows that the flipped case of the
+    proposition holds with `s≤s n≤m` as evidence that `suc n ≤ suc m`. -->
+
+<p>这里，我们的证明在两个参数上进行归纳，并按照情况分析：</p>
+
+<ul>
+  <li>
+    <p><strong>第一起始步骤</strong>：如果第一个参数是 <code class="highlighter-rouge">zero</code>，第二个参数是 <code class="highlighter-rouge">n</code>，那么 forward
+条件成立，我们使用 <code class="highlighter-rouge">z≤n</code> 作为 <code class="highlighter-rouge">zero ≤ n</code> 的证明。</p>
+  </li>
+  <li>
+    <p><strong>第二起始步骤</strong>：如果第一个参数是 <code class="highlighter-rouge">suc m</code>，第二个参数是 <code class="highlighter-rouge">zero</code>，那么 flipped
+条件成立，我们使用 <code class="highlighter-rouge">z≤n</code> 作为 <code class="highlighter-rouge">zero ≤ suc m</code> 的证明。</p>
+  </li>
+  <li>
+    <p><strong>归纳步骤</strong>：如果第一个参数是 <code class="highlighter-rouge">suc m</code>，第二个参数是 <code class="highlighter-rouge">suc n</code>，那么归纳假设
+<code class="highlighter-rouge">≤-total m n</code> 可以给出如下推断：</p>
+
+    <ul>
+      <li>
+        <p>归纳假设的 forward 条件成立，以 <code class="highlighter-rouge">m≤n</code> 作为 <code class="highlighter-rouge">m ≤ n</code> 的证明。以此我们可以使用
+<code class="highlighter-rouge">s≤s m≤n</code> 作为 <code class="highlighter-rouge">suc m ≤ suc n</code> 来证明 forward 条件成立。</p>
+      </li>
+      <li>
+        <p>归纳假设的 flipped 条件成立，以 <code class="highlighter-rouge">n≤m</code> 作为 <code class="highlighter-rouge">n ≤ m</code> 的证明。以此我们可以使用
+<code class="highlighter-rouge">s≤s n≤m</code> 作为 <code class="highlighter-rouge">suc n ≤ suc m</code> 来证明 flipped 条件成立。</p>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<!-- This is our first use of the `with` clause in Agda.  The keyword
+`with` is followed by an expression and one or more subsequent lines.
+Each line begins with an ellipsis (`...`) and a vertical bar (`|`),
+followed by a pattern to be matched against the expression
+and the right-hand side of the equation. -->
+
+<p>这是我们第一次在 Agda 中使用 <code class="highlighter-rouge">with</code> 语句。<code class="highlighter-rouge">with</code> 关键字后面有一个表达式和一或多行。每行以省略号（<code class="highlighter-rouge">...</code>）和一个竖线（<code class="highlighter-rouge">|</code>）开头，后面跟着用来匹配表达式的模式，和等式的右手边。</p>
+
+<!-- Every use of `with` is equivalent to defining a helper function.  For
+example, the definition above is equivalent to the following: -->
+
+<p>使用 <code class="highlighter-rouge">with</code> 语句等同于定义一个辅助函数。比如说，上面的定义和下面的等价：</p>
+
+<pre class="Agda"><a id="≤-total′"></a><a id="21488" href="/PLFA-zh/Relations/#21488" class="Function">≤-total′</a> <a id="21497" class="Symbol">:</a> <a id="21499" class="Symbol">∀</a> <a id="21501" class="Symbol">(</a><a id="21502" href="/PLFA-zh/Relations/#21502" class="Bound">m</a> <a id="21504" href="/PLFA-zh/Relations/#21504" class="Bound">n</a> <a id="21506" class="Symbol">:</a> <a id="21508" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="21509" class="Symbol">)</a> <a id="21511" class="Symbol">→</a> <a id="21513" href="/PLFA-zh/Relations/#17089" class="Datatype">Total</a> <a id="21519" href="/PLFA-zh/Relations/#21502" class="Bound">m</a> <a id="21521" href="/PLFA-zh/Relations/#21504" class="Bound">n</a>
+<a id="21523" href="/PLFA-zh/Relations/#21488" class="Function">≤-total′</a> <a id="21532" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>    <a id="21540" href="/PLFA-zh/Relations/#21540" class="Bound">n</a>        <a id="21549" class="Symbol">=</a>  <a id="21552" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="21560" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="21564" href="/PLFA-zh/Relations/#21488" class="Function">≤-total′</a> <a id="21573" class="Symbol">(</a><a id="21574" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="21578" href="/PLFA-zh/Relations/#21578" class="Bound">m</a><a id="21579" class="Symbol">)</a> <a id="21581" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>     <a id="21590" class="Symbol">=</a>  <a id="21593" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="21601" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="21605" href="/PLFA-zh/Relations/#21488" class="Function">≤-total′</a> <a id="21614" class="Symbol">(</a><a id="21615" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="21619" href="/PLFA-zh/Relations/#21619" class="Bound">m</a><a id="21620" class="Symbol">)</a> <a id="21622" class="Symbol">(</a><a id="21623" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="21627" href="/PLFA-zh/Relations/#21627" class="Bound">n</a><a id="21628" class="Symbol">)</a>  <a id="21631" class="Symbol">=</a>  <a id="21634" href="/PLFA-zh/Relations/#21666" class="Function">helper</a> <a id="21641" class="Symbol">(</a><a id="21642" href="/PLFA-zh/Relations/#21488" class="Function">≤-total′</a> <a id="21651" href="/PLFA-zh/Relations/#21619" class="Bound">m</a> <a id="21653" href="/PLFA-zh/Relations/#21627" class="Bound">n</a><a id="21654" class="Symbol">)</a>
+  <a id="21658" class="Keyword">where</a>
+  <a id="21666" href="/PLFA-zh/Relations/#21666" class="Function">helper</a> <a id="21673" class="Symbol">:</a> <a id="21675" href="/PLFA-zh/Relations/#17089" class="Datatype">Total</a> <a id="21681" href="/PLFA-zh/Relations/#21619" class="Bound">m</a> <a id="21683" href="/PLFA-zh/Relations/#21627" class="Bound">n</a> <a id="21685" class="Symbol">→</a> <a id="21687" href="/PLFA-zh/Relations/#17089" class="Datatype">Total</a> <a id="21693" class="Symbol">(</a><a id="21694" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="21698" href="/PLFA-zh/Relations/#21619" class="Bound">m</a><a id="21699" class="Symbol">)</a> <a id="21701" class="Symbol">(</a><a id="21702" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="21706" href="/PLFA-zh/Relations/#21627" class="Bound">n</a><a id="21707" class="Symbol">)</a>
+  <a id="21711" href="/PLFA-zh/Relations/#21666" class="Function">helper</a> <a id="21718" class="Symbol">(</a><a id="21719" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="21727" href="/PLFA-zh/Relations/#21727" class="Bound">m≤n</a><a id="21730" class="Symbol">)</a>  <a id="21733" class="Symbol">=</a>  <a id="21736" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="21744" class="Symbol">(</a><a id="21745" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="21749" href="/PLFA-zh/Relations/#21727" class="Bound">m≤n</a><a id="21752" class="Symbol">)</a>
+  <a id="21756" href="/PLFA-zh/Relations/#21666" class="Function">helper</a> <a id="21763" class="Symbol">(</a><a id="21764" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="21772" href="/PLFA-zh/Relations/#21772" class="Bound">n≤m</a><a id="21775" class="Symbol">)</a>  <a id="21778" class="Symbol">=</a>  <a id="21781" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="21789" class="Symbol">(</a><a id="21790" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="21794" href="/PLFA-zh/Relations/#21772" class="Bound">n≤m</a><a id="21797" class="Symbol">)</a></pre>
+
+<!-- This is also our first use of a `where` clause in Agda.  The keyword `where` is
+followed by one or more definitions, which must be indented.  Any variables
+bound on the left-hand side of the preceding equation (in this case, `m` and
+`n`) are in scope within the nested definition, and any identifiers bound in the
+nested definition (in this case, `helper`) are in scope in the right-hand side
+of the preceding equation. -->
+
+<p>这也是我们第一次在 Agda 中使用 <code class="highlighter-rouge">where</code> 语句。<code class="highlighter-rouge">where</code> 关键字后面有一或多条定义，其必须被缩进。之前等式左手边的约束变量（此例中的 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>）在嵌套的定义中仍然在作用域内。在嵌套定义中的约束标识符（此例中的 <code class="highlighter-rouge">helper</code> ）在等式的右手边的作用域内。</p>
+
+<!-- If both arguments are equal, then both cases hold and we could return evidence
+of either.  In the code above we return the forward case, but there is a
+variant that returns the flipped case: -->
+
+<p>如果两个参数相同，那么两个情况同时成立，我们可以返回任一证明。上面的代码中我们返回 forward 条件，但是我们也可以返回 flipped 条件，如下：</p>
+
+<pre class="Agda"><a id="≤-total″"></a><a id="22697" href="/PLFA-zh/Relations/#22697" class="Function">≤-total″</a> <a id="22706" class="Symbol">:</a> <a id="22708" class="Symbol">∀</a> <a id="22710" class="Symbol">(</a><a id="22711" href="/PLFA-zh/Relations/#22711" class="Bound">m</a> <a id="22713" href="/PLFA-zh/Relations/#22713" class="Bound">n</a> <a id="22715" class="Symbol">:</a> <a id="22717" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="22718" class="Symbol">)</a> <a id="22720" class="Symbol">→</a> <a id="22722" href="/PLFA-zh/Relations/#17089" class="Datatype">Total</a> <a id="22728" href="/PLFA-zh/Relations/#22711" class="Bound">m</a> <a id="22730" href="/PLFA-zh/Relations/#22713" class="Bound">n</a>
+<a id="22732" href="/PLFA-zh/Relations/#22697" class="Function">≤-total″</a> <a id="22741" href="/PLFA-zh/Relations/#22741" class="Bound">m</a>       <a id="22749" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>                      <a id="22775" class="Symbol">=</a>  <a id="22778" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="22786" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="22790" href="/PLFA-zh/Relations/#22697" class="Function">≤-total″</a> <a id="22799" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>    <a id="22807" class="Symbol">(</a><a id="22808" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="22812" href="/PLFA-zh/Relations/#22812" class="Bound">n</a><a id="22813" class="Symbol">)</a>                   <a id="22833" class="Symbol">=</a>  <a id="22836" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="22844" href="/PLFA-zh/Relations/#1528" class="InductiveConstructor">z≤n</a>
+<a id="22848" href="/PLFA-zh/Relations/#22697" class="Function">≤-total″</a> <a id="22857" class="Symbol">(</a><a id="22858" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="22862" href="/PLFA-zh/Relations/#22862" class="Bound">m</a><a id="22863" class="Symbol">)</a> <a id="22865" class="Symbol">(</a><a id="22866" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="22870" href="/PLFA-zh/Relations/#22870" class="Bound">n</a><a id="22871" class="Symbol">)</a> <a id="22873" class="Keyword">with</a> <a id="22878" href="/PLFA-zh/Relations/#22697" class="Function">≤-total″</a> <a id="22887" href="/PLFA-zh/Relations/#22862" class="Bound">m</a> <a id="22889" href="/PLFA-zh/Relations/#22870" class="Bound">n</a>
+<a id="22891" class="Symbol">...</a>                        <a id="22918" class="Symbol">|</a> <a id="22920" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="22928" href="/PLFA-zh/Relations/#22928" class="Bound">m≤n</a>   <a id="22934" class="Symbol">=</a>  <a id="22937" href="/PLFA-zh/Relations/#17120" class="InductiveConstructor">forward</a> <a id="22945" class="Symbol">(</a><a id="22946" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="22950" href="/PLFA-zh/Relations/#22928" class="Bound">m≤n</a><a id="22953" class="Symbol">)</a>
+<a id="22955" class="Symbol">...</a>                        <a id="22982" class="Symbol">|</a> <a id="22984" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="22992" href="/PLFA-zh/Relations/#22992" class="Bound">n≤m</a>   <a id="22998" class="Symbol">=</a>  <a id="23001" href="/PLFA-zh/Relations/#17177" class="InductiveConstructor">flipped</a> <a id="23009" class="Symbol">(</a><a id="23010" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="23014" href="/PLFA-zh/Relations/#22992" class="Bound">n≤m</a><a id="23017" class="Symbol">)</a></pre>
+
+<!-- It differs from the original code in that it pattern
+matches on the second argument before the first argument. -->
+
+<p>两者的区别在于上述代码在对于第一个参数进行模式匹配之前先对于第二个参数先进行模式匹配。</p>
+
+<!-- ## Monotonicity -->
+
+<h2 id="单调性">单调性</h2>
+
+<!-- If one bumps into both an operator and an ordering at a party, one may ask if
+the operator is _monotonic_ with regard to the ordering.  For example, addition
+is monotonic with regard to inequality, meaning: -->
+
+<p>如果在聚会中碰到了一个运算符和一个序，那么有人可能会问这个运算符对于这个序是不是
+<strong>单调的（Monotonic）</strong>。比如说，加法对于小于等于是单调的，这意味着：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>∀ {m n p q : ℕ} → m ≤ n → p ≤ q → m + p ≤ n + q
+</code></pre></div></div>
+
+<!-- The proof is straightforward using the techniques we have learned, and is best
+broken into three parts. First, we deal with the special case of showing
+addition is monotonic on the right: -->
+
+<p>这个证明可以用我们学会的方法，很直接的来完成。我们最好把它分成三个部分，首先我们证明加法对于小于等于在右手边是单调的：</p>
+
+<pre class="Agda"><a id="+-monoʳ-≤"></a><a id="23891" href="/PLFA-zh/Relations/#23891" class="Function">+-monoʳ-≤</a> <a id="23901" class="Symbol">:</a> <a id="23903" class="Symbol">∀</a> <a id="23905" class="Symbol">(</a><a id="23906" href="/PLFA-zh/Relations/#23906" class="Bound">n</a> <a id="23908" href="/PLFA-zh/Relations/#23908" class="Bound">p</a> <a id="23910" href="/PLFA-zh/Relations/#23910" class="Bound">q</a> <a id="23912" class="Symbol">:</a> <a id="23914" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="23915" class="Symbol">)</a>
+  <a id="23919" class="Symbol">→</a> <a id="23921" href="/PLFA-zh/Relations/#23908" class="Bound">p</a> <a id="23923" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="23925" href="/PLFA-zh/Relations/#23910" class="Bound">q</a>
+    <a id="23931" class="Comment">-------------</a>
+  <a id="23947" class="Symbol">→</a> <a id="23949" href="/PLFA-zh/Relations/#23906" class="Bound">n</a> <a id="23951" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">+</a> <a id="23953" href="/PLFA-zh/Relations/#23908" class="Bound">p</a> <a id="23955" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="23957" href="/PLFA-zh/Relations/#23906" class="Bound">n</a> <a id="23959" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">+</a> <a id="23961" href="/PLFA-zh/Relations/#23910" class="Bound">q</a>
+<a id="23963" href="/PLFA-zh/Relations/#23891" class="Function">+-monoʳ-≤</a> <a id="23973" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>    <a id="23981" href="/PLFA-zh/Relations/#23981" class="Bound">p</a> <a id="23983" href="/PLFA-zh/Relations/#23983" class="Bound">q</a> <a id="23985" href="/PLFA-zh/Relations/#23985" class="Bound">p≤q</a>  <a id="23990" class="Symbol">=</a>  <a id="23993" href="/PLFA-zh/Relations/#23985" class="Bound">p≤q</a>
+<a id="23997" href="/PLFA-zh/Relations/#23891" class="Function">+-monoʳ-≤</a> <a id="24007" class="Symbol">(</a><a id="24008" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="24012" href="/PLFA-zh/Relations/#24012" class="Bound">n</a><a id="24013" class="Symbol">)</a> <a id="24015" href="/PLFA-zh/Relations/#24015" class="Bound">p</a> <a id="24017" href="/PLFA-zh/Relations/#24017" class="Bound">q</a> <a id="24019" href="/PLFA-zh/Relations/#24019" class="Bound">p≤q</a>  <a id="24024" class="Symbol">=</a>  <a id="24027" href="/PLFA-zh/Relations/#1577" class="InductiveConstructor">s≤s</a> <a id="24031" class="Symbol">(</a><a id="24032" href="/PLFA-zh/Relations/#23891" class="Function">+-monoʳ-≤</a> <a id="24042" href="/PLFA-zh/Relations/#24012" class="Bound">n</a> <a id="24044" href="/PLFA-zh/Relations/#24015" class="Bound">p</a> <a id="24046" href="/PLFA-zh/Relations/#24017" class="Bound">q</a> <a id="24048" href="/PLFA-zh/Relations/#24019" class="Bound">p≤q</a><a id="24051" class="Symbol">)</a></pre>
+
+<!-- The proof is by induction on the first argument.
+
+* _Base case_: The first argument is `zero` in which case
+  `zero + p ≤ zero + q` simplifies to `p ≤ q`, the evidence
+  for which is given by the argument `p≤q`.
+
+* _Inductive case_: The first argument is `suc n`, in which case
+  `suc n + p ≤ suc n + q` simplifies to `suc (n + p) ≤ suc (n + q)`.
+  The inductive hypothesis `+-monoʳ-≤ n p q p≤q` establishes that
+  `n + p ≤ n + q`, and our goal follows by applying `s≤s`. -->
+
+<p>我们对于第一个参数进行归纳。</p>
+
+<ul>
+  <li>
+    <p><strong>起始步骤</strong>：第一个参数是 <code class="highlighter-rouge">zero</code>，那么 <code class="highlighter-rouge">zero + p ≤ zero + q</code> 可以化简为 <code class="highlighter-rouge">p ≤ q</code>，
+其证明由 <code class="highlighter-rouge">p≤q</code> 给出。</p>
+  </li>
+  <li>
+    <p><strong>归纳步骤</strong>：第一个参数是 <code class="highlighter-rouge">suc n</code>，那么 <code class="highlighter-rouge">suc n + p ≤ suc n + q</code> 可以化简为
+<code class="highlighter-rouge">suc (n + p) ≤ suc (n + q)</code>。归纳假设 <code class="highlighter-rouge">+-monoʳ-≤ n p q p≤q</code> 可以证明
+<code class="highlighter-rouge">n + p ≤ n + q</code>，我们在此之上使用 <code class="highlighter-rouge">s≤s</code> 即可得证。</p>
+  </li>
+</ul>
+
+<!-- Second, we deal with the special case of showing addition is
+monotonic on the left. This follows from the previous
+result and the commutativity of addition: -->
+
+<p>接下来，我们证明加法对于小于等于在左手边是单调的。我们可以用之前的结论和加法的交换律来证明：</p>
+
+<pre class="Agda"><a id="+-monoˡ-≤"></a><a id="25051" href="/PLFA-zh/Relations/#25051" class="Function">+-monoˡ-≤</a> <a id="25061" class="Symbol">:</a> <a id="25063" class="Symbol">∀</a> <a id="25065" class="Symbol">(</a><a id="25066" href="/PLFA-zh/Relations/#25066" class="Bound">m</a> <a id="25068" href="/PLFA-zh/Relations/#25068" class="Bound">n</a> <a id="25070" href="/PLFA-zh/Relations/#25070" class="Bound">p</a> <a id="25072" class="Symbol">:</a> <a id="25074" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="25075" class="Symbol">)</a>
+  <a id="25079" class="Symbol">→</a> <a id="25081" href="/PLFA-zh/Relations/#25066" class="Bound">m</a> <a id="25083" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="25085" href="/PLFA-zh/Relations/#25068" class="Bound">n</a>
+    <a id="25091" class="Comment">-------------</a>
+  <a id="25107" class="Symbol">→</a> <a id="25109" href="/PLFA-zh/Relations/#25066" class="Bound">m</a> <a id="25111" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">+</a> <a id="25113" href="/PLFA-zh/Relations/#25070" class="Bound">p</a> <a id="25115" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="25117" href="/PLFA-zh/Relations/#25068" class="Bound">n</a> <a id="25119" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">+</a> <a id="25121" href="/PLFA-zh/Relations/#25070" class="Bound">p</a>
+<a id="25123" href="/PLFA-zh/Relations/#25051" class="Function">+-monoˡ-≤</a> <a id="25133" href="/PLFA-zh/Relations/#25133" class="Bound">m</a> <a id="25135" href="/PLFA-zh/Relations/#25135" class="Bound">n</a> <a id="25137" href="/PLFA-zh/Relations/#25137" class="Bound">p</a> <a id="25139" href="/PLFA-zh/Relations/#25139" class="Bound">m≤n</a>  <a id="25144" class="Keyword">rewrite</a> <a id="25152" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#9708" class="Function">+-comm</a> <a id="25159" href="/PLFA-zh/Relations/#25133" class="Bound">m</a> <a id="25161" href="/PLFA-zh/Relations/#25137" class="Bound">p</a> <a id="25163" class="Symbol">|</a> <a id="25165" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#9708" class="Function">+-comm</a> <a id="25172" href="/PLFA-zh/Relations/#25135" class="Bound">n</a> <a id="25174" href="/PLFA-zh/Relations/#25137" class="Bound">p</a>  <a id="25177" class="Symbol">=</a> <a id="25179" href="/PLFA-zh/Relations/#23891" class="Function">+-monoʳ-≤</a> <a id="25189" href="/PLFA-zh/Relations/#25137" class="Bound">p</a> <a id="25191" href="/PLFA-zh/Relations/#25133" class="Bound">m</a> <a id="25193" href="/PLFA-zh/Relations/#25135" class="Bound">n</a> <a id="25195" href="/PLFA-zh/Relations/#25139" class="Bound">m≤n</a></pre>
+
+<!-- Rewriting by `+-comm m p` and `+-comm n p` converts `m + p ≤ n + p` into
+`p + m ≤ p + n`, which is proved by invoking `+-monoʳ-≤ p m n m≤n`. -->
+
+<p>用 <code class="highlighter-rouge">+-comm m p</code> 和 <code class="highlighter-rouge">+-comm n p</code> 来重写，可以让 <code class="highlighter-rouge">m + p ≤ n + p</code> 转换成 <code class="highlighter-rouge">p + n ≤ p + m</code>，而我们可以用 <code class="highlighter-rouge">+-moroʳ-≤ p m n m≤n</code> 来证明。</p>
+
+<!-- Third, we combine the two previous results: -->
+
+<p>最后，我们把前两步的结论结合起来：</p>
+
+<pre class="Agda"><a id="+-mono-≤"></a><a id="25574" href="/PLFA-zh/Relations/#25574" class="Function">+-mono-≤</a> <a id="25583" class="Symbol">:</a> <a id="25585" class="Symbol">∀</a> <a id="25587" class="Symbol">(</a><a id="25588" href="/PLFA-zh/Relations/#25588" class="Bound">m</a> <a id="25590" href="/PLFA-zh/Relations/#25590" class="Bound">n</a> <a id="25592" href="/PLFA-zh/Relations/#25592" class="Bound">p</a> <a id="25594" href="/PLFA-zh/Relations/#25594" class="Bound">q</a> <a id="25596" class="Symbol">:</a> <a id="25598" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="25599" class="Symbol">)</a>
+  <a id="25603" class="Symbol">→</a> <a id="25605" href="/PLFA-zh/Relations/#25588" class="Bound">m</a> <a id="25607" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="25609" href="/PLFA-zh/Relations/#25590" class="Bound">n</a>
+  <a id="25613" class="Symbol">→</a> <a id="25615" href="/PLFA-zh/Relations/#25592" class="Bound">p</a> <a id="25617" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="25619" href="/PLFA-zh/Relations/#25594" class="Bound">q</a>
+    <a id="25625" class="Comment">-------------</a>
+  <a id="25641" class="Symbol">→</a> <a id="25643" href="/PLFA-zh/Relations/#25588" class="Bound">m</a> <a id="25645" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">+</a> <a id="25647" href="/PLFA-zh/Relations/#25592" class="Bound">p</a> <a id="25649" href="/PLFA-zh/Relations/#1501" class="Datatype Operator">≤</a> <a id="25651" href="/PLFA-zh/Relations/#25590" class="Bound">n</a> <a id="25653" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">+</a> <a id="25655" href="/PLFA-zh/Relations/#25594" class="Bound">q</a>
+<a id="25657" href="/PLFA-zh/Relations/#25574" class="Function">+-mono-≤</a> <a id="25666" href="/PLFA-zh/Relations/#25666" class="Bound">m</a> <a id="25668" href="/PLFA-zh/Relations/#25668" class="Bound">n</a> <a id="25670" href="/PLFA-zh/Relations/#25670" class="Bound">p</a> <a id="25672" href="/PLFA-zh/Relations/#25672" class="Bound">q</a> <a id="25674" href="/PLFA-zh/Relations/#25674" class="Bound">m≤n</a> <a id="25678" href="/PLFA-zh/Relations/#25678" class="Bound">p≤q</a>  <a id="25683" class="Symbol">=</a>  <a id="25686" href="/PLFA-zh/Relations/#12099" class="Function">≤-trans</a> <a id="25694" class="Symbol">(</a><a id="25695" href="/PLFA-zh/Relations/#25051" class="Function">+-monoˡ-≤</a> <a id="25705" href="/PLFA-zh/Relations/#25666" class="Bound">m</a> <a id="25707" href="/PLFA-zh/Relations/#25668" class="Bound">n</a> <a id="25709" href="/PLFA-zh/Relations/#25670" class="Bound">p</a> <a id="25711" href="/PLFA-zh/Relations/#25674" class="Bound">m≤n</a><a id="25714" class="Symbol">)</a> <a id="25716" class="Symbol">(</a><a id="25717" href="/PLFA-zh/Relations/#23891" class="Function">+-monoʳ-≤</a> <a id="25727" href="/PLFA-zh/Relations/#25668" class="Bound">n</a> <a id="25729" href="/PLFA-zh/Relations/#25670" class="Bound">p</a> <a id="25731" href="/PLFA-zh/Relations/#25672" class="Bound">q</a> <a id="25733" href="/PLFA-zh/Relations/#25678" class="Bound">p≤q</a><a id="25736" class="Symbol">)</a></pre>
+
+<!-- Invoking `+-monoˡ-≤ m n p m≤n` proves `m + p ≤ n + p` and invoking
+`+-monoʳ-≤ n p q p≤q` proves `n + p ≤ n + q`, and combining these with
+transitivity proves `m + p ≤ n + q`, as was to be shown. -->
+
+<p>使用 <code class="highlighter-rouge">+-monoˡ-≤ m n p m≤n</code> 可以证明 <code class="highlighter-rouge">m + p ≤ n + p</code>，使用 <code class="highlighter-rouge">+-monoʳ-≤ n p q p≤q</code> 可以证明 <code class="highlighter-rouge">n + p ≤ n + q</code>，用传递性把两者连接起来，我们可以获得 <code class="highlighter-rouge">m + p ≤ n + q</code> 的证明，如上所示。</p>
+
+<!-- #### Exercise `*-mono-≤` (stretch) -->
+
+<h4 id="练习--mono--延伸">练习 <code class="highlighter-rouge">*-mono-≤</code> （延伸）</h4>
+
+<!-- Show that multiplication is monotonic with regard to inequality. -->
+
+<p>证明乘法对于小于等于是单调的。</p>
+
+<!-- <pre class="Agda"><a id="26306" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="26359" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- ## Strict inequality {#strict-inequality} -->
+
+<h2 id="strict-inequality">严格不等关系</h2>
+
+<!-- We can define strict inequality similarly to inequality: -->
+
+<p>我们可以用类似于定义不等关系的方法来定义严格不等关系。</p>
+
+<pre class="Agda"><a id="26594" class="Keyword">infix</a> <a id="26600" class="Number">4</a> <a id="26602" href="/PLFA-zh/Relations/#26612" class="Datatype Operator">_&lt;_</a>
+
+<a id="26607" class="Keyword">data</a> <a id="_&lt;_"></a><a id="26612" href="/PLFA-zh/Relations/#26612" class="Datatype Operator">_&lt;_</a> <a id="26616" class="Symbol">:</a> <a id="26618" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="26620" class="Symbol">→</a> <a id="26622" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="26624" class="Symbol">→</a> <a id="26626" class="PrimitiveType">Set</a> <a id="26630" class="Keyword">where</a>
+
+  <a id="_&lt;_.z&lt;s"></a><a id="26639" href="/PLFA-zh/Relations/#26639" class="InductiveConstructor">z&lt;s</a> <a id="26643" class="Symbol">:</a> <a id="26645" class="Symbol">∀</a> <a id="26647" class="Symbol">{</a><a id="26648" href="/PLFA-zh/Relations/#26648" class="Bound">n</a> <a id="26650" class="Symbol">:</a> <a id="26652" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="26653" class="Symbol">}</a>
+      <a id="26661" class="Comment">------------</a>
+    <a id="26678" class="Symbol">→</a> <a id="26680" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a> <a id="26685" href="/PLFA-zh/Relations/#26612" class="Datatype Operator">&lt;</a> <a id="26687" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="26691" href="/PLFA-zh/Relations/#26648" class="Bound">n</a>
+
+  <a id="_&lt;_.s&lt;s"></a><a id="26696" href="/PLFA-zh/Relations/#26696" class="InductiveConstructor">s&lt;s</a> <a id="26700" class="Symbol">:</a> <a id="26702" class="Symbol">∀</a> <a id="26704" class="Symbol">{</a><a id="26705" href="/PLFA-zh/Relations/#26705" class="Bound">m</a> <a id="26707" href="/PLFA-zh/Relations/#26707" class="Bound">n</a> <a id="26709" class="Symbol">:</a> <a id="26711" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="26712" class="Symbol">}</a>
+    <a id="26718" class="Symbol">→</a> <a id="26720" href="/PLFA-zh/Relations/#26705" class="Bound">m</a> <a id="26722" href="/PLFA-zh/Relations/#26612" class="Datatype Operator">&lt;</a> <a id="26724" href="/PLFA-zh/Relations/#26707" class="Bound">n</a>
+      <a id="26732" class="Comment">-------------</a>
+    <a id="26750" class="Symbol">→</a> <a id="26752" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="26756" href="/PLFA-zh/Relations/#26705" class="Bound">m</a> <a id="26758" href="/PLFA-zh/Relations/#26612" class="Datatype Operator">&lt;</a> <a id="26760" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="26764" href="/PLFA-zh/Relations/#26707" class="Bound">n</a></pre>
+
+<!-- The key difference is that zero is less than the successor of an
+arbitrary number, but is not less than zero. -->
+
+<p>严格不等关系与不等关系最重要的区别在于，0 小于任何数的后继，而不小于 0。</p>
+
+<!-- Clearly, strict inequality is not reflexive. However it is
+_irreflexive_ in that `n < n` never holds for any value of `n`.
+Like inequality, strict inequality is transitive.
+Strict inequality is not total, but satisfies the closely related property of
+_trichotomy_: for any `m` and `n`, exactly one of `m < n`, `m ≡ n`, or `m > n`
+holds (where we define `m > n` to hold exactly when `n < m`).
+It is also monotonic with regards to addition and multiplication. -->
+
+<p>显然，严格不等关系不是自反的，而是<strong>非自反的（Irreflexive）</strong>，表示 <code class="highlighter-rouge">n &lt; n</code> 对于任何值 <code class="highlighter-rouge">n</code> 都不成立。和不等关系一样，严格不等关系是传递的。严格不等关系不是完全的，但是满足一个相似的性质：<em>三分律</em>（Trichotomy）：对于任意的 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，<code class="highlighter-rouge">m &lt; n</code>、<code class="highlighter-rouge">m ≡ n</code> 或者
+<code class="highlighter-rouge">m &gt; n</code> 三者有且仅有一者成立。（我们定义 <code class="highlighter-rouge">m &gt; n</code> 当且仅当 <code class="highlighter-rouge">n &lt; m</code> 成立时成立）
+严格不等关系对于加法和乘法也是单调的。</p>
+
+<!-- Most of the above are considered in exercises below.  Irreflexivity
+requires negation, as does the fact that the three cases in
+trichotomy are mutually exclusive, so those points are deferred to
+Chapter [Negation](/PLFA-zh/Negation/). -->
+
+<p>我们把一部分上述性质作为习题。非自反性需要逻辑非，三分律需要证明三者是互斥的，因此这两个性质暂不做为习题。我们会在 <a href="/PLFA-zh/Negation/">Negation</a> 章节来重新讨论。</p>
+
+<!-- It is straightforward to show that `suc m ≤ n` implies `m < n`,
+and conversely.  One can then give an alternative derivation of the
+properties of strict inequality, such as transitivity, by
+exploiting the corresponding properties of inequality. -->
+
+<p>我们可以直接地来证明 <code class="highlighter-rouge">suc m ≤ n</code> 蕴含了 <code class="highlighter-rouge">m &lt; n</code>，及其逆命题。因此我们亦可从不等关系的性质中，使用此性质来证明严格不等关系的性质。</p>
+
+<!-- #### Exercise `<-trans` (recommended) {#less-trans} -->
+
+<h4 id="less-trans">练习 <code class="highlighter-rouge">&lt;-trans</code> （推荐）</h4>
+
+<!-- Show that strict inequality is transitive. -->
+
+<p>证明严格不等是传递的。</p>
+
+<!-- <pre class="Agda"><a id="28551" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="28604" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- #### Exercise `trichotomy` {#trichotomy} -->
+
+<h4 id="trichotomy">练习 <code class="highlighter-rouge">trichotomy</code></h4>
+
+<!-- Show that strict inequality satisfies a weak version of trichotomy, in
+the sense that for any `m` and `n` that one of the following holds:
+  * `m < n`,
+  * `m ≡ n`, or
+  * `m > n`. -->
+
+<p>证明严格不等关系满足弱化的三元律，证明对于任意 <code class="highlighter-rouge">m</code> 和 <code class="highlighter-rouge">n</code>，下列命题有一条成立：</p>
+
+<ul>
+  <li><code class="highlighter-rouge">m &lt; n</code>，</li>
+  <li><code class="highlighter-rouge">m ≡ n</code>，或者</li>
+  <li><code class="highlighter-rouge">m &gt; n</code>。</li>
+</ul>
+
+<!-- Define `m > n` to be the same as `n < m`.
+You will need a suitable data declaration,
+similar to that used for totality.
+(We will show that the three cases are exclusive after we introduce
+[negation](/PLFA-zh/Negation/).) -->
+
+<p>定义 <code class="highlighter-rouge">m &gt; n</code> 为 <code class="highlighter-rouge">n &lt; m</code>。你需要一个合适的数据类型声明，如同我们在证明完全性中使用的那样。
+（我们会在介绍<a href="/PLFA-zh/Negation/">逻辑非</a>以后证明三者是互斥的）</p>
+
+<!-- <pre class="Agda"><a id="29365" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="29418" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- #### Exercise `+-mono-<` {#plus-mono-less} -->
+
+<h4 id="plus-mono-less">练习 <code class="highlighter-rouge">+-mono-&lt;</code></h4>
+
+<!-- Show that addition is monotonic with respect to strict inequality.
+As with inequality, some additional definitions may be required. -->
+
+<p>证明加法对于严格不等关系是单调的。正如不等关系中那样，你可以需要额外的定义。</p>
+
+<!-- <pre class="Agda"><a id="29758" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="29811" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- #### Exercise `≤-iff-<` (recommended) {#leq-iff-less} -->
+
+<h4 id="leq-iff-less">练习 <code class="highlighter-rouge">≤-iff-&lt;</code> (推荐)</h4>
+
+<!-- Show that `suc m ≤ n` implies `m < n`, and conversely. -->
+
+<p>证明 <code class="highlighter-rouge">suc m ≤ n</code> 蕴含了 <code class="highlighter-rouge">m &lt; n</code>，及其逆命题。</p>
+
+<!-- <pre class="Agda"><a id="30082" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="30135" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- #### Exercise `<-trans-revisited` {#less-trans-revisited} -->
+
+<h4 id="less-trans-revisited">练习 <code class="highlighter-rouge">&lt;-trans-revisited</code></h4>
+
+<!-- Give an alternative proof that strict inequality is transitive,
+using the relation between strict inequality and inequality and
+the fact that inequality is transitive. -->
+
+<p>用另外一种方法证明严格不等是传递的，使用之前证明的不等关系和严格不等关系的联系，以及不等关系的传递性。</p>
+
+<!-- <pre class="Agda"><a id="30555" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="30608" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- ## Even and odd -->
+
+<h2 id="奇和偶">奇和偶</h2>
+
+<!-- As a further example, let's specify even and odd numbers.  Inequality
+and strict inequality are _binary relations_, while even and odd are
+_unary relations_, sometimes called _predicates_: -->
+
+<p>作为一个额外的例子，我们来定义奇数和偶数。不等关系和严格不等关系是<strong>二元关系</strong>，而奇偶性是<strong>一元关系</strong>，有时也被叫做<strong>谓词（Predicate）</strong>：</p>
+
+<pre class="Agda"><a id="30979" class="Keyword">data</a> <a id="even"></a><a id="30984" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="30989" class="Symbol">:</a> <a id="30991" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="30993" class="Symbol">→</a> <a id="30995" class="PrimitiveType">Set</a>
+<a id="30999" class="Keyword">data</a> <a id="odd"></a><a id="31004" href="/PLFA-zh/Relations/#31004" class="Datatype">odd</a>  <a id="31009" class="Symbol">:</a> <a id="31011" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a> <a id="31013" class="Symbol">→</a> <a id="31015" class="PrimitiveType">Set</a>
+
+<a id="31020" class="Keyword">data</a> <a id="31025" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="31030" class="Keyword">where</a>
+
+  <a id="even.zero"></a><a id="31039" href="/PLFA-zh/Relations/#31039" class="InductiveConstructor">zero</a> <a id="31044" class="Symbol">:</a>
+      <a id="31052" class="Comment">---------</a>
+      <a id="31068" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="31073" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#115" class="InductiveConstructor">zero</a>
+
+  <a id="even.suc"></a><a id="31081" href="/PLFA-zh/Relations/#31081" class="InductiveConstructor">suc</a>  <a id="31086" class="Symbol">:</a> <a id="31088" class="Symbol">∀</a> <a id="31090" class="Symbol">{</a><a id="31091" href="/PLFA-zh/Relations/#31091" class="Bound">n</a> <a id="31093" class="Symbol">:</a> <a id="31095" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="31096" class="Symbol">}</a>
+    <a id="31102" class="Symbol">→</a> <a id="31104" href="/PLFA-zh/Relations/#31004" class="Datatype">odd</a> <a id="31108" href="/PLFA-zh/Relations/#31091" class="Bound">n</a>
+      <a id="31116" class="Comment">------------</a>
+    <a id="31133" class="Symbol">→</a> <a id="31135" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="31140" class="Symbol">(</a><a id="31141" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="31145" href="/PLFA-zh/Relations/#31091" class="Bound">n</a><a id="31146" class="Symbol">)</a>
+
+<a id="31149" class="Keyword">data</a> <a id="31154" href="/PLFA-zh/Relations/#31004" class="Datatype">odd</a> <a id="31158" class="Keyword">where</a>
+
+  <a id="odd.suc"></a><a id="31167" href="/PLFA-zh/Relations/#31167" class="InductiveConstructor">suc</a>   <a id="31173" class="Symbol">:</a> <a id="31175" class="Symbol">∀</a> <a id="31177" class="Symbol">{</a><a id="31178" href="/PLFA-zh/Relations/#31178" class="Bound">n</a> <a id="31180" class="Symbol">:</a> <a id="31182" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="31183" class="Symbol">}</a>
+    <a id="31189" class="Symbol">→</a> <a id="31191" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="31196" href="/PLFA-zh/Relations/#31178" class="Bound">n</a>
+      <a id="31204" class="Comment">-----------</a>
+    <a id="31220" class="Symbol">→</a> <a id="31222" href="/PLFA-zh/Relations/#31004" class="Datatype">odd</a> <a id="31226" class="Symbol">(</a><a id="31227" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#128" class="InductiveConstructor">suc</a> <a id="31231" href="/PLFA-zh/Relations/#31178" class="Bound">n</a><a id="31232" class="Symbol">)</a></pre>
+
+<!-- A number is even if it is zero or the successor of an odd number,
+and odd if it is the successor of an even number. -->
+
+<p>一个数是偶数，如果它是 0，或者是奇数的后继。一个数是奇数，如果它是偶数的后继。</p>
+
+<!-- This is our first use of a mutually recursive datatype declaration.
+Since each identifier must be defined before it is used, we first
+declare the indexed types `even` and `odd` (omitting the `where`
+keyword and the declarations of the constructors) and then
+declare the constructors (omitting the signatures `ℕ → Set`
+which were given earlier). -->
+
+<p>这是我们第一次定义一个相互递归的数据类型。因为每个标识符必须在使用前声明，所以我们首先声明索引数据类型 <code class="highlighter-rouge">even</code> 和 <code class="highlighter-rouge">odd</code> （省略 <code class="highlighter-rouge">where</code> 关键字和其构造器的定义），然后声明其构造器（省略其签名 <code class="highlighter-rouge">ℕ → Set</code>，因为在之前已经给出）。</p>
+
+<!-- This is also our first use of _overloaded_ constructors,
+that is, using the same name for constructors of different types.
+Here `suc` means one of three constructors: -->
+
+<p>这也是我们第一次使用 <strong>重载（Overloaded）</strong>的构造器。这意味着不同类型的构造器拥有相同的名字。在这里 <code class="highlighter-rouge">suc</code> 表示下面三种构造器其中之一：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>suc : ℕ → ℕ
+
+suc : ∀ {n : ℕ}
+  → odd n
+    ------------
+  → even (suc n)
+
+suc : ∀ {n : ℕ}
+  → even n
+    -----------
+  → odd (suc n)
+</code></pre></div></div>
+
+<!-- Similarly, `zero` refers to one of two constructors. Due to how it
+does type inference, Agda does not allow overloading of defined names,
+but does allow overloading of constructors.  It is recommended that
+one restrict overloading to related meanings, as we have done here,
+but it is not required. -->
+
+<p>同理，<code class="highlighter-rouge">zero</code> 表示两种构造器的一种。因为类型推导的限制，Agda 不允许重载已定义的名字，但是允许重载构造器。我们推荐将重载限制在有关联的定义中，如我们所做的这样，但这不是必须的。</p>
+
+<!-- We show that the sum of two even numbers is even: -->
+
+<p>我们证明两个偶数之和是偶数：</p>
+
+<pre class="Agda"><a id="e+e≡e"></a><a id="32862" href="/PLFA-zh/Relations/#32862" class="Function">e+e≡e</a> <a id="32868" class="Symbol">:</a> <a id="32870" class="Symbol">∀</a> <a id="32872" class="Symbol">{</a><a id="32873" href="/PLFA-zh/Relations/#32873" class="Bound">m</a> <a id="32875" href="/PLFA-zh/Relations/#32875" class="Bound">n</a> <a id="32877" class="Symbol">:</a> <a id="32879" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="32880" class="Symbol">}</a>
+  <a id="32884" class="Symbol">→</a> <a id="32886" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="32891" href="/PLFA-zh/Relations/#32873" class="Bound">m</a>
+  <a id="32895" class="Symbol">→</a> <a id="32897" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="32902" href="/PLFA-zh/Relations/#32875" class="Bound">n</a>
+    <a id="32908" class="Comment">------------</a>
+  <a id="32923" class="Symbol">→</a> <a id="32925" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="32930" class="Symbol">(</a><a id="32931" href="/PLFA-zh/Relations/#32873" class="Bound">m</a> <a id="32933" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">+</a> <a id="32935" href="/PLFA-zh/Relations/#32875" class="Bound">n</a><a id="32936" class="Symbol">)</a>
+
+<a id="o+e≡o"></a><a id="32939" href="/PLFA-zh/Relations/#32939" class="Function">o+e≡o</a> <a id="32945" class="Symbol">:</a> <a id="32947" class="Symbol">∀</a> <a id="32949" class="Symbol">{</a><a id="32950" href="/PLFA-zh/Relations/#32950" class="Bound">m</a> <a id="32952" href="/PLFA-zh/Relations/#32952" class="Bound">n</a> <a id="32954" class="Symbol">:</a> <a id="32956" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="32957" class="Symbol">}</a>
+  <a id="32961" class="Symbol">→</a> <a id="32963" href="/PLFA-zh/Relations/#31004" class="Datatype">odd</a> <a id="32967" href="/PLFA-zh/Relations/#32950" class="Bound">m</a>
+  <a id="32971" class="Symbol">→</a> <a id="32973" href="/PLFA-zh/Relations/#30984" class="Datatype">even</a> <a id="32978" href="/PLFA-zh/Relations/#32952" class="Bound">n</a>
+    <a id="32984" class="Comment">-----------</a>
+  <a id="32998" class="Symbol">→</a> <a id="33000" href="/PLFA-zh/Relations/#31004" class="Datatype">odd</a> <a id="33004" class="Symbol">(</a><a id="33005" href="/PLFA-zh/Relations/#32950" class="Bound">m</a> <a id="33007" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#230" class="Primitive Operator">+</a> <a id="33009" href="/PLFA-zh/Relations/#32952" class="Bound">n</a><a id="33010" class="Symbol">)</a>
+
+<a id="33013" href="/PLFA-zh/Relations/#32862" class="Function">e+e≡e</a> <a id="33019" href="/PLFA-zh/Relations/#31039" class="InductiveConstructor">zero</a>     <a id="33028" href="/PLFA-zh/Relations/#33028" class="Bound">en</a>  <a id="33032" class="Symbol">=</a>  <a id="33035" href="/PLFA-zh/Relations/#33028" class="Bound">en</a>
+<a id="33038" href="/PLFA-zh/Relations/#32862" class="Function">e+e≡e</a> <a id="33044" class="Symbol">(</a><a id="33045" href="/PLFA-zh/Relations/#31081" class="InductiveConstructor">suc</a> <a id="33049" href="/PLFA-zh/Relations/#33049" class="Bound">om</a><a id="33051" class="Symbol">)</a> <a id="33053" href="/PLFA-zh/Relations/#33053" class="Bound">en</a>  <a id="33057" class="Symbol">=</a>  <a id="33060" href="/PLFA-zh/Relations/#31081" class="InductiveConstructor">suc</a> <a id="33064" class="Symbol">(</a><a id="33065" href="/PLFA-zh/Relations/#32939" class="Function">o+e≡o</a> <a id="33071" href="/PLFA-zh/Relations/#33049" class="Bound">om</a> <a id="33074" href="/PLFA-zh/Relations/#33053" class="Bound">en</a><a id="33076" class="Symbol">)</a>
+
+<a id="33079" href="/PLFA-zh/Relations/#32939" class="Function">o+e≡o</a> <a id="33085" class="Symbol">(</a><a id="33086" href="/PLFA-zh/Relations/#31167" class="InductiveConstructor">suc</a> <a id="33090" href="/PLFA-zh/Relations/#33090" class="Bound">em</a><a id="33092" class="Symbol">)</a> <a id="33094" href="/PLFA-zh/Relations/#33094" class="Bound">en</a>  <a id="33098" class="Symbol">=</a>  <a id="33101" href="/PLFA-zh/Relations/#31167" class="InductiveConstructor">suc</a> <a id="33105" class="Symbol">(</a><a id="33106" href="/PLFA-zh/Relations/#32862" class="Function">e+e≡e</a> <a id="33112" href="/PLFA-zh/Relations/#33090" class="Bound">em</a> <a id="33115" href="/PLFA-zh/Relations/#33094" class="Bound">en</a><a id="33117" class="Symbol">)</a></pre>
+
+<!-- Corresponding to the mutually recursive types, we use two mutually recursive
+functions, one to show that the sum of two even numbers is even, and the other
+to show that the sum of an odd and an even number is odd. -->
+
+<p>与相互递归的定义对应，我们用两个相互递归的函数，一个证明两个偶数之和是偶数，另一个证明一个奇数与一个偶数之和是奇数。</p>
+
+<!-- This is our first use of mutually recursive functions.  Since each identifier
+must be defined before it is used, we first give the signatures for both
+functions and then the equations that define them. -->
+
+<p>这是我们第一次使用相互递归的函数。因为每个标识符必须在使用前声明，我们先给出两个函数的签名，然后再给出其定义。</p>
+
+<!-- To show that the sum of two even numbers is even, consider the
+evidence that the first number is even. If it is because it is zero,
+then the sum is even because the second number is even.  If it is
+because it is the successor of an odd number, then the result is even
+because it is the successor of the sum of an odd and an even number,
+which is odd. -->
+
+<p>要证明两个偶数之和为偶，我们考虑第一个数为偶数的证明。如果是因为第一个数为 0，那么第二个数为偶数的证明即为和为偶数的证明。如果是因为第一个数为奇数的后继，那么和为偶数是因为他是一个奇数和一个偶数的和的后续，而这个和是一个奇数。</p>
+
+<!-- To show that the sum of an odd and even number is odd, consider the
+evidence that the first number is odd. If it is because it is the
+successor of an even number, then the result is odd because it is the
+successor of the sum of two even numbers, which is even. -->
+
+<p>要证明一个奇数和一个偶数的和是奇数，我们考虑第一个数是奇数的证明。如果是因为它是一个偶数的后继，那么和为奇数，因为它是两个偶数之和的后继，而这个和是一个偶数。</p>
+
+<!-- #### Exercise `o+o≡e` (stretch) {#odd-plus-odd} -->
+
+<h4 id="odd-plus-odd">练习 <code class="highlighter-rouge">o+o≡e</code> (延伸)</h4>
+
+<!-- Show that the sum of two odd numbers is even. -->
+
+<p>证明两个奇数之和为偶数。</p>
+
+<!-- <pre class="Agda"><a id="34760" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="34813" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- #### Exercise `Bin-predicates` (stretch) {#Bin-predicates} -->
+
+<h4 id="Bin-predicates">练习 <code class="highlighter-rouge">Bin-predicates</code> (延伸)</h4>
+
+<!-- Recall that
+Exercise [Bin](/PLFA-zh/Naturals/#Bin)
+defines a datatype `Bin` of bitstrings representing natural numbers.
+Representations are not unique due to leading zeros.
+Hence, eleven may be represented by both of the following: -->
+
+<p>回忆我们在练习 <a href="/PLFA-zh/Naturals/#Bin">Bin</a> 中定义了一个数据类型 <code class="highlighter-rouge">Bin</code> 来用二进制字符串表示自然数。这个表达方法不是唯一的，因为我们在开头加任意个 0。因此，11 可以由以下方法表示：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>x1 x1 x0 x1 nil
+x1 x1 x0 x1 x0 x0 nil
+</code></pre></div></div>
+
+<!-- Define a predicate -->
+
+<p>定义一个谓词</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Can : Bin → Set
+</code></pre></div></div>
+
+<!-- over all bitstrings that holds if the bitstring is canonical, meaning
+it has no leading zeros; the first representation of eleven above is
+canonical, and the second is not.  To define it, you will need an
+auxiliary predicate -->
+
+<p>其在一个二进制字符串的表示是标准的（Canonical）时成立，表示它没有开头的 0。在两个 11 的表达方式中，第一个是标准的，而第二个不是。在定义这个谓词时，你需要一个辅助谓词：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>One : Bin → Set
+</code></pre></div></div>
+
+<!-- that holds only if the bistring has a leading one.  A bitstring is
+canonical if it has a leading one (representing a positive number) or
+if it consists of a single zero (representing zero). -->
+
+<p>其仅在一个二进制字符串开头为 1 时成立。一个二进制字符串是标准的，如果它开头是 1 （表示一个正数），或者它仅是一个 0 （表示 0）。</p>
+
+<!-- Show that increment preserves canonical bitstrings: -->
+
+<p>证明递增可以保持标准性。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Can x
+------------
+Can (inc x)
+</code></pre></div></div>
+
+<!-- Show that converting a natural to a bitstring always yields a
+canonical bitstring: -->
+
+<p>证明从自然数转换成的二进制字符串是标准的。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>----------
+Can (to n)
+</code></pre></div></div>
+
+<!-- Show that converting a canonical bitstring to a natural
+and back is the identity: -->
+
+<p>证明将一个标准的二进制字符串转换成自然数之后，再转换回二进制字符串与原二进制字符串相同。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Can x
+---------------
+to (from x) ≡ x
+</code></pre></div></div>
+
+<!-- (Hint: For each of these, you may first need to prove related
+properties of `One`.) -->
+
+<p>（提示：对于每一条习题，先从 <code class="highlighter-rouge">One</code> 的性质开始）</p>
+
+<!-- <pre class="Agda"><a id="36706" class="Comment">-- Your code goes here</a></pre> -->
+
+<pre class="Agda"><a id="36759" class="Comment">-- 请将代码写在此处。</a></pre>
+
+<!-- ## Standard library -->
+
+<h2 id="标准库">标准库</h2>
+
+<!-- Definitions similar to those in this chapter can be found in the standard library: -->
+
+<p>标准库中有类似于本章介绍的定义：</p>
+
+<pre class="Agda"><a id="36963" class="Keyword">import</a> <a id="36970" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.html" class="Module">Data.Nat</a> <a id="36979" class="Keyword">using</a> <a id="36985" class="Symbol">(</a><a id="36986" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Base.html#845" class="Datatype Operator">_≤_</a><a id="36989" class="Symbol">;</a> <a id="36991" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Base.html#868" class="InductiveConstructor">z≤n</a><a id="36994" class="Symbol">;</a> <a id="36996" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Base.html#910" class="InductiveConstructor">s≤s</a><a id="36999" class="Symbol">)</a>
+<a id="37001" class="Keyword">import</a> <a id="37008" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html" class="Module">Data.Nat.Properties</a> <a id="37028" class="Keyword">using</a> <a id="37034" class="Symbol">(</a><a id="37035" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#2115" class="Function">≤-refl</a><a id="37041" class="Symbol">;</a> <a id="37043" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#2308" class="Function">≤-trans</a><a id="37050" class="Symbol">;</a> <a id="37052" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#2165" class="Function">≤-antisym</a><a id="37061" class="Symbol">;</a> <a id="37063" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#2420" class="Function">≤-total</a><a id="37070" class="Symbol">;</a>
+                                  <a id="37106" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#12667" class="Function">+-monoʳ-≤</a><a id="37115" class="Symbol">;</a> <a id="37117" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#12577" class="Function">+-monoˡ-≤</a><a id="37126" class="Symbol">;</a> <a id="37128" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.Properties.html#12421" class="Function">+-mono-≤</a><a id="37136" class="Symbol">)</a></pre>
+
+<!-- In the standard library, `≤-total` is formalised in terms of
+disjunction (which we define in
+Chapter [Connectives](/PLFA-zh/Connectives/)),
+and `+-monoʳ-≤`, `+-monoˡ-≤`, `+-mono-≤` are proved differently than here,
+and more arguments are implicit. -->
+
+<p>在标准库中，<code class="highlighter-rouge">≤-total</code> 是使用析取定义的（我们将在 <a href="/PLFA-zh/Connectives/">Connectives</a> 章节定义）。
+<code class="highlighter-rouge">+-monoʳ-≤</code>、<code class="highlighter-rouge">+-monoˡ-≤</code> 和 <code class="highlighter-rouge">+-mono-≤</code> 的证明方法和本书不同。更多的参数是隐式申明的。</p>
+
+<h2 id="unicode">Unicode</h2>
+
+<!-- This chapter uses the following unicode:
+
+    ≤  U+2264  LESS-THAN OR EQUAL TO (\<=, \le)
+    ≥  U+2265  GREATER-THAN OR EQUAL TO (\>=, \ge)
+    ˡ  U+02E1  MODIFIER LETTER SMALL L (\^l)
+    ʳ  U+02B3  MODIFIER LETTER SMALL R (\^r) -->
+
+<p>本章使用了如下 Unicode 符号：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>≤  U+2264  小于等于 (\&lt;=, \le)
+≥  U+2265  大于等于 (\&gt;=, \ge)
+ˡ  U+02E1  小写字母 L 标识符 (\^l)
+ʳ  U+02B3  小写字母 R 标识符 (\^r)
+</code></pre></div></div>
+
+<!-- The commands `\^l` and `\^r` give access to a variety of superscript
+leftward and rightward arrows in addition to superscript letters `l` and `r`. -->
+
+<p><code class="highlighter-rouge">\^l</code> 和 <code class="highlighter-rouge">\^r</code> 命令给出了左右箭头，以及上标字母 <code class="highlighter-rouge">l</code> 和 <code class="highlighter-rouge">r</code>。</p>
+
+  </div>
+
+  <p style="text-align:center;">
+    
+    <a alt="Previous chapter" href="/PLFA-zh/Induction/">前一章</a>
+    &bullet;
+    
+    
+    <a alt="Source code" href="https://github.com/Agda-zh/PLFA-zh/blob/dev/src/plfa/Relations.lagda">源代码</a>
+    
+    
+    &bullet;
+    <a alt="Next chapter" href="/PLFA-zh/Equality/">后一章</a>
+    
+</p>
+
+
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/PLFA-zh/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">编程语言基础：Agda 描述
+</h2>
+
+    <h3 class="footer-heading">原作者：</h3><div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Philip Wadler</li>
+          <li><a class="u-email" href="mailto:wadler@inf.ed.ac.uk">wadler@inf.ed.ac.uk</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/wadler"><svg class="svg-icon"><use xlink:href="/PLFA-zh/assets/minima-social-icons.svg#github"></use></svg> <span class="username">wadler</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3"></div>
+    </div><div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Wen Kokke</li>
+          <li><a class="u-email" href="mailto:wen.kokke@ed.ac.uk">wen.kokke@ed.ac.uk</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/wenkokke"><svg class="svg-icon"><use xlink:href="/PLFA-zh/assets/minima-social-icons.svg#github"></use></svg> <span class="username">wenkokke</span></a></li><li><a href="https://www.twitter.com/wenkokke"><svg class="svg-icon"><use xlink:href="/PLFA-zh/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">wenkokke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3"></div>
+    </div><h3 class="footer-heading">本章翻译进度：100%</h3>
+        <h3 class="footer-heading">本章译者：</h3>
+        <p>Fangyi Zhou</p>本作品采用<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">知识共享署名 4.0 国际许可协议</a>进行许可。<br />
+    This work is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>
+  </div>
+</footer>
+<!-- Import jQuery -->
+<script type="text/javascript" src="/PLFA-zh/assets/jquery.js"></script>
+
+<!-- Script which draws background for progress tags -->
+<script type="text/javascript">
+$('span.progress').each(function(){
+    const progress = parseInt($(this).text());
+    $(this).css({
+        'border-style': 'solid',
+        'border-radius': '5px',
+        'border-width': 'thin',
+        'border-color': progress === 100 ? 'limegreen' : 'dimgray',
+        'font-size': '70%',
+        'padding': '0% 0.5% 0% 0.5%',
+        'margin': '0em 0em 0em 0.5em',
+        'box-sizing': 'border-box',
+        'vertical-align': '10%'
+    });
+    $(this).text(progress.toString() + " %");
+})
+</script>
+
+<!-- Script which allows for foldable code blocks -->
+<script type="text/javascript">
+ $('div.foldable pre').each(function(){
+     var autoHeight = $(this).height();
+     var lineHeight = parseFloat($(this).css('line-height'));
+
+     var plus    = $("<div></div>");
+     var horLine = $("<div></div>");
+     var verLine = $("<div></div>");
+     $(this).prepend(plus);
+     plus.css({
+         'position'         : 'relative',
+         'float'            : 'right',
+         'right'            : '-' + (0.5 * lineHeight - 1.5) + 'px',
+         'width'            : lineHeight,
+         'height'           : lineHeight});
+     verLine.css({
+         'position'         : 'relative',
+         'height'           : lineHeight,
+         'width'            : '3px',
+         'background-color' : '#C1E0FF'});
+     horLine.css({
+         'position'         : 'relative',
+         'top'              : '-' + (0.5 * lineHeight + 1.5) + 'px',
+         'left'             : '-' + (0.5 * lineHeight - 1.5) + 'px',
+         'height'           : '3px',
+         'width'            : lineHeight,
+         'background-color' : '#C1E0FF'});
+     plus.append(verLine);
+     plus.append(horLine);
+
+     $(this).height(2.0 * lineHeight);
+     $(this).css('overflow','hidden');
+
+     $(this).click(function(){
+         if ($(this).height() == autoHeight) {
+             $(this).height(2.0 * lineHeight);
+             plus.show();
+         }
+         else {
+             $(this).height('auto');
+             plus.hide();
+         }
+     });
+ });
+</script>
+
+<!-- Import KaTeX -->
+<script type="text/javascript" src="/PLFA-zh/assets/katex.js"></script>
+
+<!-- Script which renders TeX using KaTeX -->
+<script type="text/javascript">
+ $("script[type='math/tex']").replaceWith(
+     function(){
+         var tex = $(this).text();
+         return "<span class=\"inline-equation\">" +
+                katex.renderToString(tex) +
+                "</span>";
+     });
+ $("script[type='math/tex; mode=display']").replaceWith(
+     function(){
+         var tex = $(this).text().replace(/%.*?(\n|$)/g,"");
+         return "<div class=\"equation\">" +
+                katex.renderToString("\\displaystyle "+tex) +
+                "</div>";
+     });
+</script>
+</body>
+
+</html>

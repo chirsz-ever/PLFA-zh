@@ -1,0 +1,1266 @@
+---
+src       : src/plfa/Connectives.lagda
+title     : "Connectives: 合取、析取与蕴含"
+layout    : page
+prev      : /Isomorphism/
+permalink : /Connectives/
+next      : /Negation/
+translators : ["Fangyi Zhou"]
+progress  : 100
+---
+
+<pre class="Agda">{% raw %}<a id="197" class="Keyword">module</a> <a id="204" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}" class="Module">plfa.Connectives</a> <a id="221" class="Keyword">where</a>{% endraw %}</pre>
+
+<!-- The ⊥ ⊎ A ≅ A exercise requires a (inj₁ ()) pattern,
+     which the reader will not have seen. Restore this
+     exercise, and possibly also associativity? Take the
+     exercises from the final sections on distributivity
+     and exponentials? -->
+
+{::comment}
+This chapter introduces the basic logical connectives, by observing a
+correspondence between connectives of logic and data types, a
+principle known as _Propositions as Types_:
+{:/}
+
+本章节介绍基础的逻辑运算符。我们使用逻辑运算符与数据类型之间的对应关系，即*命题即类型*原理（Propositions as Types）。
+
+{::comment}
+  * _conjunction_ is _product_,
+  * _disjunction_ is _sum_,
+  * _true_ is _unit type_,
+  * _false_ is _empty type_,
+  * _implication_ is _function space_.
+{:/}
+
+  * *合取*（Conjunction）即是*积*（Product）
+  * *析取*（Disjunction）即是*和*（Sum）
+  * *真*（True）即是*单元类型*（Unit Type）
+  * *假*（False）即是*空类型*（Empty Type）
+  * *蕴含*（Implication）即是*函数空间*（Function Space）
+
+{::comment}
+## Imports
+{:/}
+
+## 导入
+
+<pre class="Agda">{% raw %}<a id="1165" class="Keyword">import</a> <a id="1172" href="https://agda.github.io/agda-stdlib/v0.17/Relation.Binary.PropositionalEquality.html" class="Module">Relation.Binary.PropositionalEquality</a> <a id="1210" class="Symbol">as</a> <a id="1213" class="Module">Eq</a>
+<a id="1216" class="Keyword">open</a> <a id="1221" href="https://agda.github.io/agda-stdlib/v0.17/Relation.Binary.PropositionalEquality.html" class="Module">Eq</a> <a id="1224" class="Keyword">using</a> <a id="1230" class="Symbol">(</a><a id="1231" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">_≡_</a><a id="1234" class="Symbol">;</a> <a id="1236" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a><a id="1240" class="Symbol">)</a>
+<a id="1242" class="Keyword">open</a> <a id="1247" href="https://agda.github.io/agda-stdlib/v0.17/Relation.Binary.PropositionalEquality.html#3975" class="Module">Eq.≡-Reasoning</a>
+<a id="1262" class="Keyword">open</a> <a id="1267" class="Keyword">import</a> <a id="1274" href="https://agda.github.io/agda-stdlib/v0.17/Data.Nat.html" class="Module">Data.Nat</a> <a id="1283" class="Keyword">using</a> <a id="1289" class="Symbol">(</a><a id="1290" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a><a id="1291" class="Symbol">)</a>
+<a id="1293" class="Keyword">open</a> <a id="1298" class="Keyword">import</a> <a id="1305" href="https://agda.github.io/agda-stdlib/v0.17/Function.html" class="Module">Function</a> <a id="1314" class="Keyword">using</a> <a id="1320" class="Symbol">(</a><a id="1321" href="https://agda.github.io/agda-stdlib/v0.17/Function.html#769" class="Function Operator">_∘_</a><a id="1324" class="Symbol">)</a>
+<a id="1326" class="Keyword">open</a> <a id="1331" class="Keyword">import</a> <a id="1338" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}" class="Module">plfa.Isomorphism</a> <a id="1355" class="Keyword">using</a> <a id="1361" class="Symbol">(</a><a id="1362" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">_≃_</a><a id="1365" class="Symbol">;</a> <a id="1367" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#11733" class="Record Operator">_≲_</a><a id="1370" class="Symbol">;</a> <a id="1372" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#3801" class="Postulate">extensionality</a><a id="1386" class="Symbol">)</a>
+<a id="1388" class="Keyword">open</a> <a id="1393" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#10785" class="Module">plfa.Isomorphism.≃-Reasoning</a>{% endraw %}</pre>
+
+
+{::comment}
+## Conjunction is product
+{:/}
+
+## 合取即是积
+
+{::comment}
+Given two propositions `A` and `B`, the conjunction `A × B` holds
+if both `A` holds and `B` holds.  We formalise this idea by
+declaring a suitable inductive type:
+{:/}
+
+给定两个命题 `A` 和 `B`，其合取 `A × B` 成立当 `A` 成立和 `B` 成立。我们将这样的概念形式化，使用如下的归纳类型：
+
+<pre class="Agda">{% raw %}<a id="1756" class="Keyword">data</a> <a id="_×_"></a><a id="1761" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">_×_</a> <a id="1765" class="Symbol">(</a><a id="1766" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1766" class="Bound">A</a> <a id="1768" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1768" class="Bound">B</a> <a id="1770" class="Symbol">:</a> <a id="1772" class="PrimitiveType">Set</a><a id="1775" class="Symbol">)</a> <a id="1777" class="Symbol">:</a> <a id="1779" class="PrimitiveType">Set</a> <a id="1783" class="Keyword">where</a>
+
+  <a id="_×_.⟨_,_⟩"></a><a id="1792" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨_,_⟩</a> <a id="1798" class="Symbol">:</a>
+      <a id="1806" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1766" class="Bound">A</a>
+    <a id="1812" class="Symbol">→</a> <a id="1814" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1768" class="Bound">B</a>
+      <a id="1822" class="Comment">-----</a>
+    <a id="1832" class="Symbol">→</a> <a id="1834" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1766" class="Bound">A</a> <a id="1836" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="1838" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1768" class="Bound">B</a>{% endraw %}</pre>
+{::comment}
+Evidence that `A × B` holds is of the form `⟨ M , N ⟩`, where `M`
+provides evidence that `A` holds and `N` provides evidence that `B`
+holds.
+{:/}
+
+`A × B` 成立的证明由 `⟨ M , N ⟩` 的形式表现，其中 `M` 是 `A` 成立的证明，
+`N` 是 `B` 成立的证明。
+
+{::comment}
+Given evidence that `A × B` holds, we can conclude that either
+`A` holds or `B` holds:
+{:/}
+
+给定 `A × B` 成立的证明，我们可以得出 `A` 成立或者 `B` 成立。
+
+<pre class="Agda">{% raw %}<a id="proj₁"></a><a id="2241" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2241" class="Function">proj₁</a> <a id="2247" class="Symbol">:</a> <a id="2249" class="Symbol">∀</a> <a id="2251" class="Symbol">{</a><a id="2252" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2252" class="Bound">A</a> <a id="2254" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2254" class="Bound">B</a> <a id="2256" class="Symbol">:</a> <a id="2258" class="PrimitiveType">Set</a><a id="2261" class="Symbol">}</a>
+  <a id="2265" class="Symbol">→</a> <a id="2267" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2252" class="Bound">A</a> <a id="2269" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="2271" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2254" class="Bound">B</a>
+    <a id="2277" class="Comment">-----</a>
+  <a id="2285" class="Symbol">→</a> <a id="2287" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2252" class="Bound">A</a>
+<a id="2289" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2241" class="Function">proj₁</a> <a id="2295" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="2297" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2297" class="Bound">x</a> <a id="2299" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="2301" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2301" class="Bound">y</a> <a id="2303" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="2305" class="Symbol">=</a> <a id="2307" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2297" class="Bound">x</a>
+
+<a id="proj₂"></a><a id="2310" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2310" class="Function">proj₂</a> <a id="2316" class="Symbol">:</a> <a id="2318" class="Symbol">∀</a> <a id="2320" class="Symbol">{</a><a id="2321" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2321" class="Bound">A</a> <a id="2323" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2323" class="Bound">B</a> <a id="2325" class="Symbol">:</a> <a id="2327" class="PrimitiveType">Set</a><a id="2330" class="Symbol">}</a>
+  <a id="2334" class="Symbol">→</a> <a id="2336" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2321" class="Bound">A</a> <a id="2338" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="2340" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2323" class="Bound">B</a>
+    <a id="2346" class="Comment">-----</a>
+  <a id="2354" class="Symbol">→</a> <a id="2356" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2323" class="Bound">B</a>
+<a id="2358" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2310" class="Function">proj₂</a> <a id="2364" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="2366" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2366" class="Bound">x</a> <a id="2368" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="2370" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2370" class="Bound">y</a> <a id="2372" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="2374" class="Symbol">=</a> <a id="2376" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2370" class="Bound">y</a>{% endraw %}</pre>
+
+{::comment}
+If `L` provides evidence that `A × B` holds, then `proj₁ L` provides evidence
+that `A` holds, and `proj₂ L` provides evidence that `B` holds.
+{:/}
+
+如果 `L` 是 `A × B` 成立的证据, 那么 `proj₁ L` 是 `A` 成立的证据，
+`proj₂ L` 是 `B` 成立的证据。
+
+{::comment}
+Equivalently, we could also declare conjunction as a record type:
+{:/}
+
+等价地，我们亦可以将合取定义为一个记录类型：
+
+<pre class="Agda">{% raw %}<a id="2745" class="Keyword">record</a> <a id="_×′_"></a><a id="2752" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2752" class="Record Operator">_×′_</a> <a id="2757" class="Symbol">(</a><a id="2758" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2758" class="Bound">A</a> <a id="2760" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2760" class="Bound">B</a> <a id="2762" class="Symbol">:</a> <a id="2764" class="PrimitiveType">Set</a><a id="2767" class="Symbol">)</a> <a id="2769" class="Symbol">:</a> <a id="2771" class="PrimitiveType">Set</a> <a id="2775" class="Keyword">where</a>
+  <a id="2783" class="Keyword">field</a>
+    <a id="_×′_.proj₁′"></a><a id="2793" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2793" class="Field">proj₁′</a> <a id="2800" class="Symbol">:</a> <a id="2802" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2758" class="Bound">A</a>
+    <a id="_×′_.proj₂′"></a><a id="2808" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2808" class="Field">proj₂′</a> <a id="2815" class="Symbol">:</a> <a id="2817" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2760" class="Bound">B</a>
+<a id="2819" class="Keyword">open</a> <a id="2824" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2752" class="Module Operator">_×′_</a>{% endraw %}</pre>
+{::comment}
+Here record construction
+{:/}
+
+在这里，记录的构造
+
+    record
+      { proj₁′ = M
+      ; proj₂′ = N
+      }
+
+{::comment}
+corresponds to the term
+{:/}
+
+对应
+
+    ⟨ M , N ⟩
+
+{::comment}
+where `M` is a term of type `A` and `N` is a term of type `B`.
+{:/}
+
+其中 `M` 是 `A` 类型的项，`N` 是 `B` 类型的项。
+
+{::comment}
+When `⟨_,_⟩` appears in a term on the right-hand side of an equation
+we refer to it as a _constructor_, and when it appears in a pattern on
+the left-hand side of an equation we refer to it as a _destructor_.
+We may also refer to `proj₁` and `proj₂` as destructors, since they
+play a similar role.
+{:/}
+
+当 `⟨_,_⟩` 在等式右手边的项中出现的时候，我们将其称作*构造器*（Constructor），当它出现在等式左边时，我们将其称作*析构器*（Destructor）。我们亦可将 `proj₁` 和 `proj₂`
+称作析构器，因为它们起到相似的效果。
+
+{::comment}
+Other terminology refers to `⟨_,_⟩` as _introducing_ a conjunction, and
+to `proj₁` and `proj₂` as _eliminating_ a conjunction; indeed, the
+former is sometimes given the name `×-I` and the latter two the names
+`×-E₁` and `×-E₂`.  As we read the rules from top to bottom,
+introduction and elimination do what they say on the tin: the first
+_introduces_ a formula for the connective, which appears in the
+conclusion but not in the hypotheses; the second _eliminates_ a
+formula for the connective, which appears in a hypothesis but not in
+the conclusion. An introduction rule describes under what conditions
+we say the connective holds---how to _define_ the connective. An
+elimination rule describes what we may conclude when the connective
+holds---how to _use_ the connective.
+{:/}
+
+其他的术语将 `⟨_,_⟩` 称作*引入*（Introduce）合取，将 `proj₁` 和 `proj₂` 称作*消去*（Eliminate）合取。前者亦记作 `×-I`，后者 `×-E₁` 和 `×-E₂`。如果我们从上到下来阅读这些规则，引入和消去正如其名字所说的那样：第一条*引入*一个运算符，所以运算符出现在结论中，而不是假设中；第二条*消去*一个带有运算符的式子，而运算符出现在假设中，而不是结论中。引入规则描述了运算符在什么情况下成立——即怎么样*定义*一个运算符。消去规则描述了运算符成立时，可以得出什么样的结论——即怎么样*使用*一个运算符。
+
+{::comment}
+(The paragraph above was adopted from "Propositions as Types", Philip Wadler,
+_Communications of the ACM_, December 2015.)
+{:/}
+
+（上面一段内容由此处改编得来：*Propositions as Types*，作者：Philip Wadler，发表于 《ACM 通讯》，2015 年 9 月）
+
+{::comment}
+In this case, applying each destructor and reassembling the results with the
+constructor is the identity over products:
+{:/}
+
+在这样的情况下，先使用析构器，再使用构造器将结果重组，得到还是原来的积。
+
+<pre class="Agda">{% raw %}<a id="η-×"></a><a id="5066" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5066" class="Function">η-×</a> <a id="5070" class="Symbol">:</a> <a id="5072" class="Symbol">∀</a> <a id="5074" class="Symbol">{</a><a id="5075" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5075" class="Bound">A</a> <a id="5077" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5077" class="Bound">B</a> <a id="5079" class="Symbol">:</a> <a id="5081" class="PrimitiveType">Set</a><a id="5084" class="Symbol">}</a> <a id="5086" class="Symbol">(</a><a id="5087" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5087" class="Bound">w</a> <a id="5089" class="Symbol">:</a> <a id="5091" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5075" class="Bound">A</a> <a id="5093" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="5095" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5077" class="Bound">B</a><a id="5096" class="Symbol">)</a> <a id="5098" class="Symbol">→</a> <a id="5100" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="5102" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2241" class="Function">proj₁</a> <a id="5108" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5087" class="Bound">w</a> <a id="5110" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="5112" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2310" class="Function">proj₂</a> <a id="5118" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5087" class="Bound">w</a> <a id="5120" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="5122" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">≡</a> <a id="5124" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5087" class="Bound">w</a>
+<a id="5126" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5066" class="Function">η-×</a> <a id="5130" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="5132" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5132" class="Bound">x</a> <a id="5134" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="5136" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5136" class="Bound">y</a> <a id="5138" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="5140" class="Symbol">=</a> <a id="5142" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>{% endraw %}</pre>
+{::comment}
+The pattern matching on the left-hand side is essential, since
+replacing `w` by `⟨ x , y ⟩` allows both sides of the
+propositional equality to simplify to the same term.
+{:/}
+
+左手边的模式匹配是必要的。用 `⟨ x , y ⟩` 来替换 `w` 让等式的两边可以化简成相同的项。
+
+{::comment}
+We set the precedence of conjunction so that it binds less
+tightly than anything save disjunction:
+{:/}
+
+我们设置合取的优先级，使它与除了析取之外结合的都不紧密：
+
+<pre class="Agda">{% raw %}<a id="5559" class="Keyword">infixr</a> <a id="5566" class="Number">2</a> <a id="5568" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">_×_</a>{% endraw %}</pre>
+{::comment}
+Thus, `m ≤ n × n ≤ p` parses as `(m ≤ n) × (n ≤ p)`.
+{:/}
+
+因此，`m ≤ n × n ≤ p` 解析为 `(m ≤ n) × (n ≤ p)`。
+
+{::comment}
+Given two types `A` and `B`, we refer to `A × B` as the
+_product_ of `A` and `B`.  In set theory, it is also sometimes
+called the _Cartesian product_, and in computing it corresponds
+to a _record_ type. Among other reasons for
+calling it the product, note that if type `A` has `m`
+distinct members, and type `B` has `n` distinct members,
+then the type `A × B` has `m * n` distinct members.
+For instance, consider a type `Bool` with two members, and
+a type `Tri` with three members:
+{:/}
+
+给定两个类型 `A` 和 `B`，我们将 `A × B` 称为 `A` 与 `B` 的*积*。在集合论中它也被称作*笛卡尔积*（Cartesian Product），在计算机科学中它对应*记录*类型。如果类型 `A` 有 `m` 个不同的成员，类型 `B` 有 `n` 个不同的成员，那么类型 `A × B` 有 `m * n` 个不同的成员。这也是它被称为积的原因之一。例如，考虑有两个成员的 `Bool` 类型，和有三个成员的 `Tri` 类型：
+
+<pre class="Agda">{% raw %}<a id="6443" class="Keyword">data</a> <a id="Bool"></a><a id="6448" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6448" class="Datatype">Bool</a> <a id="6453" class="Symbol">:</a> <a id="6455" class="PrimitiveType">Set</a> <a id="6459" class="Keyword">where</a>
+  <a id="Bool.true"></a><a id="6467" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6467" class="InductiveConstructor">true</a>  <a id="6473" class="Symbol">:</a> <a id="6475" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6448" class="Datatype">Bool</a>
+  <a id="Bool.false"></a><a id="6482" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6482" class="InductiveConstructor">false</a> <a id="6488" class="Symbol">:</a> <a id="6490" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6448" class="Datatype">Bool</a>
+
+<a id="6496" class="Keyword">data</a> <a id="Tri"></a><a id="6501" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6501" class="Datatype">Tri</a> <a id="6505" class="Symbol">:</a> <a id="6507" class="PrimitiveType">Set</a> <a id="6511" class="Keyword">where</a>
+  <a id="Tri.aa"></a><a id="6519" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a> <a id="6522" class="Symbol">:</a> <a id="6524" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6501" class="Datatype">Tri</a>
+  <a id="Tri.bb"></a><a id="6530" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a> <a id="6533" class="Symbol">:</a> <a id="6535" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6501" class="Datatype">Tri</a>
+  <a id="Tri.cc"></a><a id="6541" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a> <a id="6544" class="Symbol">:</a> <a id="6546" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6501" class="Datatype">Tri</a>{% endraw %}</pre>
+{::comment}
+Then the type `Bool × Tri` has six members:
+{:/}
+
+那么，`Bool × Tri` 类型有如下的六个成员：
+
+    ⟨ true  , aa ⟩    ⟨ true  , bb ⟩    ⟨ true ,  cc ⟩
+    ⟨ false , aa ⟩    ⟨ false , bb ⟩    ⟨ false , cc ⟩
+
+{::comment}
+For example, the following function enumerates all
+possible arguments of type `Bool × Tri`:
+{:/}
+
+下面的函数枚举了所有类型为 `Bool × Tri` 的参数：
+
+<pre class="Agda">{% raw %}<a id="×-count"></a><a id="6919" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6919" class="Function">×-count</a> <a id="6927" class="Symbol">:</a> <a id="6929" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6448" class="Datatype">Bool</a> <a id="6934" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="6936" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6501" class="Datatype">Tri</a> <a id="6940" class="Symbol">→</a> <a id="6942" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a>
+<a id="6944" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6919" class="Function">×-count</a> <a id="6952" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="6954" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6467" class="InductiveConstructor">true</a>  <a id="6960" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="6962" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a> <a id="6965" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>  <a id="6968" class="Symbol">=</a>  <a id="6971" class="Number">1</a>
+<a id="6973" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6919" class="Function">×-count</a> <a id="6981" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="6983" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6467" class="InductiveConstructor">true</a>  <a id="6989" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="6991" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a> <a id="6994" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>  <a id="6997" class="Symbol">=</a>  <a id="7000" class="Number">2</a>
+<a id="7002" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6919" class="Function">×-count</a> <a id="7010" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="7012" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6467" class="InductiveConstructor">true</a>  <a id="7018" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="7020" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a> <a id="7023" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>  <a id="7026" class="Symbol">=</a>  <a id="7029" class="Number">3</a>
+<a id="7031" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6919" class="Function">×-count</a> <a id="7039" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="7041" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6482" class="InductiveConstructor">false</a> <a id="7047" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="7049" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a> <a id="7052" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>  <a id="7055" class="Symbol">=</a>  <a id="7058" class="Number">4</a>
+<a id="7060" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6919" class="Function">×-count</a> <a id="7068" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="7070" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6482" class="InductiveConstructor">false</a> <a id="7076" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="7078" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a> <a id="7081" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>  <a id="7084" class="Symbol">=</a>  <a id="7087" class="Number">5</a>
+<a id="7089" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6919" class="Function">×-count</a> <a id="7097" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="7099" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6482" class="InductiveConstructor">false</a> <a id="7105" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="7107" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a> <a id="7110" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>  <a id="7113" class="Symbol">=</a>  <a id="7116" class="Number">6</a>{% endraw %}</pre>
+
+{::comment}
+Product on types also shares a property with product on numbers in
+that there is a sense in which it is commutative and associative.  In
+particular, product is commutative and associative _up to
+isomorphism_.
+{:/}
+
+类型上的积与数的积有相似的性质——它们满足交换律和结合律。更确切地说，积在*在同构意义下*满足交换律和结合率。
+
+{::comment}
+For commutativity, the `to` function swaps a pair, taking `⟨ x , y ⟩` to
+`⟨ y , x ⟩`, and the `from` function does the same (up to renaming).
+Instantiating the patterns correctly in `from∘to` and `to∘from` is essential.
+Replacing the definition of `from∘to` by `λ w → refl` will not work;
+and similarly for `to∘from`:
+{:/}
+
+对于交换律，`to` 函数将有序对交换，将 `⟨ x , y ⟩` 变为 `⟨ y , x ⟩`，`from`
+函数亦是如此（忽略命名）。在 `from∘to` 和 `to∘from` 中正确地实例化要匹配的模式是很重要的。使用 `λ w → refl` 作为 `from∘to` 的定义是不可行的，`to∘from` 同理。
+
+<pre class="Agda">{% raw %}<a id="×-comm"></a><a id="7931" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7931" class="Function">×-comm</a> <a id="7938" class="Symbol">:</a> <a id="7940" class="Symbol">∀</a> <a id="7942" class="Symbol">{</a><a id="7943" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7943" class="Bound">A</a> <a id="7945" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7945" class="Bound">B</a> <a id="7947" class="Symbol">:</a> <a id="7949" class="PrimitiveType">Set</a><a id="7952" class="Symbol">}</a> <a id="7954" class="Symbol">→</a> <a id="7956" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7943" class="Bound">A</a> <a id="7958" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="7960" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7945" class="Bound">B</a> <a id="7962" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">≃</a> <a id="7964" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7945" class="Bound">B</a> <a id="7966" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="7968" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7943" class="Bound">A</a>
+<a id="7970" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7931" class="Function">×-comm</a> <a id="7977" class="Symbol">=</a>
+  <a id="7981" class="Keyword">record</a>
+    <a id="7992" class="Symbol">{</a> <a id="7994" class="Field">to</a>       <a id="8003" class="Symbol">=</a>  <a id="8006" class="Symbol">λ{</a> <a id="8009" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="8011" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8011" class="Bound">x</a> <a id="8013" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="8015" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8015" class="Bound">y</a> <a id="8017" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="8019" class="Symbol">→</a> <a id="8021" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="8023" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8015" class="Bound">y</a> <a id="8025" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="8027" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8011" class="Bound">x</a> <a id="8029" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="8031" class="Symbol">}</a>
+    <a id="8037" class="Symbol">;</a> <a id="8039" class="Field">from</a>     <a id="8048" class="Symbol">=</a>  <a id="8051" class="Symbol">λ{</a> <a id="8054" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="8056" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8056" class="Bound">y</a> <a id="8058" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="8060" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8060" class="Bound">x</a> <a id="8062" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="8064" class="Symbol">→</a> <a id="8066" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="8068" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8060" class="Bound">x</a> <a id="8070" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="8072" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8056" class="Bound">y</a> <a id="8074" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="8076" class="Symbol">}</a>
+    <a id="8082" class="Symbol">;</a> <a id="8084" class="Field">from∘to</a>  <a id="8093" class="Symbol">=</a>  <a id="8096" class="Symbol">λ{</a> <a id="8099" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="8101" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8101" class="Bound">x</a> <a id="8103" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="8105" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8105" class="Bound">y</a> <a id="8107" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="8109" class="Symbol">→</a> <a id="8111" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="8116" class="Symbol">}</a>
+    <a id="8122" class="Symbol">;</a> <a id="8124" class="Field">to∘from</a>  <a id="8133" class="Symbol">=</a>  <a id="8136" class="Symbol">λ{</a> <a id="8139" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="8141" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8141" class="Bound">y</a> <a id="8143" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="8145" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#8145" class="Bound">x</a> <a id="8147" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="8149" class="Symbol">→</a> <a id="8151" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="8156" class="Symbol">}</a>
+    <a id="8162" class="Symbol">}</a>{% endraw %}</pre>
+
+{::comment}
+Being _commutative_ is different from being _commutative up to
+isomorphism_.  Compare the two statements:
+{:/}
+
+满足*交换律*和*在同构意义下满足交换律*是不一样的。比较下列两个命题：
+
+    m * n ≡ n * m
+    A × B ≃ B × A
+
+{::comment}
+In the first case, we might have that `m` is `2` and `n` is `3`, and
+both `m * n` and `n * m` are equal to `6`.  In the second case, we
+might have that `A` is `Bool` and `B` is `Tri`, and `Bool × Tri` is
+_not_ the same as `Tri × Bool`.  But there is an isomorphism between
+the two types.  For instance, `⟨ true , aa ⟩`, which is a member of the
+former, corresponds to `⟨ aa , true ⟩`, which is a member of the latter.
+{:/}
+
+在第一个情况下，我们可能有 `m` 是 `2`、`n` 是 `3`，那么 `m * n` 和 `n * m` 都是 `6`。在第二个情况下，我们可能有 `A` 是 `Bool` 和 `B` 是 `Tri`，但是 `Bool × Tri` 和
+`Tri × Bool` *不是*一样的。但是存在一个两者之间的同构。例如：`⟨ true , aa ⟩` 是前者的成员，其对应后者的成员 `⟨ aa , true ⟩`。
+
+{::comment}
+For associativity, the `to` function reassociates two uses of pairing,
+taking `⟨ ⟨ x , y ⟩ , z ⟩` to `⟨ x , ⟨ y , z ⟩ ⟩`, and the `from` function does
+the inverse.  Again, the evidence of left and right inverse requires
+matching against a suitable pattern to enable simplification:
+{:/}
+
+对于结合律来说，`to` 函数将两个有序对进行重组：将 `⟨ ⟨ x , y ⟩ , z ⟩` 转换为 `⟨ x , ⟨ y , z ⟩ ⟩`，
+`from` 函数则为其逆。同样，左逆和右逆的证明需要在一个合适的模式来匹配，从而可以直接化简：
+
+<pre class="Agda">{% raw %}<a id="×-assoc"></a><a id="9458" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9458" class="Function">×-assoc</a> <a id="9466" class="Symbol">:</a> <a id="9468" class="Symbol">∀</a> <a id="9470" class="Symbol">{</a><a id="9471" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9471" class="Bound">A</a> <a id="9473" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9473" class="Bound">B</a> <a id="9475" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9475" class="Bound">C</a> <a id="9477" class="Symbol">:</a> <a id="9479" class="PrimitiveType">Set</a><a id="9482" class="Symbol">}</a> <a id="9484" class="Symbol">→</a> <a id="9486" class="Symbol">(</a><a id="9487" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9471" class="Bound">A</a> <a id="9489" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="9491" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9473" class="Bound">B</a><a id="9492" class="Symbol">)</a> <a id="9494" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="9496" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9475" class="Bound">C</a> <a id="9498" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">≃</a> <a id="9500" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9471" class="Bound">A</a> <a id="9502" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="9504" class="Symbol">(</a><a id="9505" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9473" class="Bound">B</a> <a id="9507" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="9509" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9475" class="Bound">C</a><a id="9510" class="Symbol">)</a>
+<a id="9512" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9458" class="Function">×-assoc</a> <a id="9520" class="Symbol">=</a>
+  <a id="9524" class="Keyword">record</a>
+    <a id="9535" class="Symbol">{</a> <a id="9537" class="Field">to</a>      <a id="9545" class="Symbol">=</a> <a id="9547" class="Symbol">λ{</a> <a id="9550" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9552" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9554" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9554" class="Bound">x</a> <a id="9556" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9558" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9558" class="Bound">y</a> <a id="9560" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9562" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9564" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9564" class="Bound">z</a> <a id="9566" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9568" class="Symbol">→</a> <a id="9570" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9572" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9554" class="Bound">x</a> <a id="9574" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9576" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9578" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9558" class="Bound">y</a> <a id="9580" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9582" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9564" class="Bound">z</a> <a id="9584" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9586" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9588" class="Symbol">}</a>
+    <a id="9594" class="Symbol">;</a> <a id="9596" class="Field">from</a>    <a id="9604" class="Symbol">=</a> <a id="9606" class="Symbol">λ{</a> <a id="9609" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9611" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9611" class="Bound">x</a> <a id="9613" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9615" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9617" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9617" class="Bound">y</a> <a id="9619" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9621" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9621" class="Bound">z</a> <a id="9623" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9625" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9627" class="Symbol">→</a> <a id="9629" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9631" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9633" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9611" class="Bound">x</a> <a id="9635" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9637" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9617" class="Bound">y</a> <a id="9639" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9641" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9643" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9621" class="Bound">z</a> <a id="9645" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9647" class="Symbol">}</a>
+    <a id="9653" class="Symbol">;</a> <a id="9655" class="Field">from∘to</a> <a id="9663" class="Symbol">=</a> <a id="9665" class="Symbol">λ{</a> <a id="9668" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9670" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9672" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9672" class="Bound">x</a> <a id="9674" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9676" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9676" class="Bound">y</a> <a id="9678" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9680" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9682" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9682" class="Bound">z</a> <a id="9684" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9686" class="Symbol">→</a> <a id="9688" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="9693" class="Symbol">}</a>
+    <a id="9699" class="Symbol">;</a> <a id="9701" class="Field">to∘from</a> <a id="9709" class="Symbol">=</a> <a id="9711" class="Symbol">λ{</a> <a id="9714" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9716" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9716" class="Bound">x</a> <a id="9718" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9720" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="9722" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9722" class="Bound">y</a> <a id="9724" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="9726" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#9726" class="Bound">z</a> <a id="9728" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9730" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="9732" class="Symbol">→</a> <a id="9734" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="9739" class="Symbol">}</a>
+    <a id="9745" class="Symbol">}</a>{% endraw %}</pre>
+
+{::comment}
+Being _associative_ is not the same as being _associative
+up to isomorphism_.  Compare the two statements:
+{:/}
+
+满足*结合律*和*在同构意义下满足结合律*是不一样的。比较下列两个命题：
+
+    (m * n) * p ≡ m * (n * p)
+    (A × B) × C ≃ A × (B × C)
+
+{::comment}
+For example, the type `(ℕ × Bool) × Tri` is _not_ the same as `ℕ ×
+(Bool × Tri)`. But there is an isomorphism between the two types. For
+instance `⟨ ⟨ 1 , true ⟩ , aa ⟩`, which is a member of the former,
+corresponds to `⟨ 1 , ⟨ true , aa ⟩ ⟩`, which is a member of the latter.
+{:/}
+
+举个例子，`(ℕ × Bool) × Tri` 与 `ℕ × (Bool × Tri)` *不同*，但是两个类型之间存在同构。例如 `⟨ ⟨ 1 , true ⟩ , aa ⟩`，一个前者的成员，与 `⟨ 1 , ⟨ true , aa ⟩ ⟩`，一个后者的成员，相对应。
+
+{::comment}
+#### Exercise `⇔≃×` (recommended)
+{:/}
+
+#### 练习 `⇔≃×` （推荐）
+
+{::comment}
+Show that `A ⇔ B` as defined [earlier]({{ site.baseurl }}{% link out/plfa/Isomorphism.md%}#iff)
+is isomorphic to `(A → B) × (B → A)`.
+{:/}
+
+证明[之前]({{ site.baseurl }}{% link out/plfa/Isomorphism.md%}#iff)定义的 `A ⇔ B` 与 `(A → B) × (B → A)` 同构。
+
+{::comment}
+<pre class="Agda">{% raw %}<a id="10699" class="Comment">-- Your code goes here</a>{% endraw %}</pre>
+{:/}
+
+<pre class="Agda">{% raw %}<a id="10752" class="Comment">-- 请将代码写在此处。</a>{% endraw %}</pre>
+
+{::comment}
+## Truth is unit
+{:/}
+
+## 真即是单元类型
+
+{::comment}
+Truth `⊤` always holds. We formalise this idea by
+declaring a suitable inductive type:
+{:/}
+
+恒真 `⊤` 恒成立。我们将这个概念用合适的归纳类型来形式化：
+
+<pre class="Agda">{% raw %}<a id="10975" class="Keyword">data</a> <a id="⊤"></a><a id="10980" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10980" class="Datatype">⊤</a> <a id="10982" class="Symbol">:</a> <a id="10984" class="PrimitiveType">Set</a> <a id="10988" class="Keyword">where</a>
+
+  <a id="⊤.tt"></a><a id="10997" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10997" class="InductiveConstructor">tt</a> <a id="11000" class="Symbol">:</a>
+    <a id="11006" class="Comment">--</a>
+    <a id="11013" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10980" class="Datatype">⊤</a>{% endraw %}</pre>
+{::comment}
+Evidence that `⊤` holds is of the form `tt`.
+{:/}
+
+`⊤` 成立的证明由 `tt` 的形式构成。
+
+{::comment}
+There is an introduction rule, but no elimination rule.
+Given evidence that `⊤` holds, there is nothing more of interest we
+can conclude.  Since truth always holds, knowing that it holds tells
+us nothing new.
+{:/}
+
+恒真有引入规则，但没有消去规则。给定一个 `⊤` 成立的证明，我们不能得出任何有趣的结论。因为恒真恒成立，知道恒真成立不会给我们带来新的知识。
+
+{::comment}
+The nullary case of `η-×` is `η-⊤`, which asserts that any
+value of type `⊤` must be equal to `tt`:
+{:/}
+
+`η-×` 的 零元形式是 `η-⊤`，其断言了任何 `⊤` 类型的值一定等于 `tt`：
+
+<pre class="Agda">{% raw %}<a id="η-⊤"></a><a id="11592" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#11592" class="Function">η-⊤</a> <a id="11596" class="Symbol">:</a> <a id="11598" class="Symbol">∀</a> <a id="11600" class="Symbol">(</a><a id="11601" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#11601" class="Bound">w</a> <a id="11603" class="Symbol">:</a> <a id="11605" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10980" class="Datatype">⊤</a><a id="11606" class="Symbol">)</a> <a id="11608" class="Symbol">→</a> <a id="11610" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10997" class="InductiveConstructor">tt</a> <a id="11613" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">≡</a> <a id="11615" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#11601" class="Bound">w</a>
+<a id="11617" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#11592" class="Function">η-⊤</a> <a id="11621" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10997" class="InductiveConstructor">tt</a> <a id="11624" class="Symbol">=</a> <a id="11626" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>{% endraw %}</pre>
+{::comment}
+The pattern matching on the left-hand side is essential.  Replacing
+`w` by `tt` allows both sides of the propositional equality to
+simplify to the same term.
+{:/}
+
+左手边的模式匹配是必要的。将 `w` 替换为 `tt` 让等式两边可以化简为相同的值。
+
+{::comment}
+We refer to `⊤` as the _unit_ type. And, indeed,
+type `⊤` has exactly one member, `tt`.  For example, the following
+function enumerates all possible arguments of type `⊤`:
+
+我们将 `⊤` 称为*单元*类型（Unit Type）。实际上，`⊤` 类型只有一个成员 `tt`。例如，下面的函数枚举了所有 `⊤` 类型的参数：
+
+{:/}
+<pre class="Agda">{% raw %}<a id="⊤-count"></a><a id="12143" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12143" class="Function">⊤-count</a> <a id="12151" class="Symbol">:</a> <a id="12153" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10980" class="Datatype">⊤</a> <a id="12155" class="Symbol">→</a> <a id="12157" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a>
+<a id="12159" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12143" class="Function">⊤-count</a> <a id="12167" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10997" class="InductiveConstructor">tt</a> <a id="12170" class="Symbol">=</a> <a id="12172" class="Number">1</a>{% endraw %}</pre>
+
+{::comment}
+For numbers, one is the identity of multiplication. Correspondingly,
+unit is the identity of product _up to isomorphism_.  For left
+identity, the `to` function takes `⟨ tt , x ⟩` to `x`, and the `from`
+function does the inverse.  The evidence of left inverse requires
+matching against a suitable pattern to enable simplification:
+{:/}
+
+对于数来说，1 是乘法的幺元。对应地，单元是积的幺元（*在同构意义下*）。对于左幺元来说，
+`to` 函数将 `⟨ tt , x ⟩` 转换成 `x`， `from` 函数则是其反函数。左逆的证明需要匹配一个合适的模式来化简：
+
+<pre class="Agda">{% raw %}<a id="⊤-identityˡ"></a><a id="12663" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12663" class="Function">⊤-identityˡ</a> <a id="12675" class="Symbol">:</a> <a id="12677" class="Symbol">∀</a> <a id="12679" class="Symbol">{</a><a id="12680" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12680" class="Bound">A</a> <a id="12682" class="Symbol">:</a> <a id="12684" class="PrimitiveType">Set</a><a id="12687" class="Symbol">}</a> <a id="12689" class="Symbol">→</a> <a id="12691" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10980" class="Datatype">⊤</a> <a id="12693" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="12695" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12680" class="Bound">A</a> <a id="12697" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">≃</a> <a id="12699" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12680" class="Bound">A</a>
+<a id="12701" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12663" class="Function">⊤-identityˡ</a> <a id="12713" class="Symbol">=</a>
+  <a id="12717" class="Keyword">record</a>
+    <a id="12728" class="Symbol">{</a> <a id="12730" class="Field">to</a>      <a id="12738" class="Symbol">=</a> <a id="12740" class="Symbol">λ{</a> <a id="12743" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="12745" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10997" class="InductiveConstructor">tt</a> <a id="12748" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="12750" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12750" class="Bound">x</a> <a id="12752" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="12754" class="Symbol">→</a> <a id="12756" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12750" class="Bound">x</a> <a id="12758" class="Symbol">}</a>
+    <a id="12764" class="Symbol">;</a> <a id="12766" class="Field">from</a>    <a id="12774" class="Symbol">=</a> <a id="12776" class="Symbol">λ{</a> <a id="12779" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12779" class="Bound">x</a> <a id="12781" class="Symbol">→</a> <a id="12783" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="12785" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10997" class="InductiveConstructor">tt</a> <a id="12788" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="12790" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12779" class="Bound">x</a> <a id="12792" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="12794" class="Symbol">}</a>
+    <a id="12800" class="Symbol">;</a> <a id="12802" class="Field">from∘to</a> <a id="12810" class="Symbol">=</a> <a id="12812" class="Symbol">λ{</a> <a id="12815" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="12817" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10997" class="InductiveConstructor">tt</a> <a id="12820" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="12822" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12822" class="Bound">x</a> <a id="12824" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="12826" class="Symbol">→</a> <a id="12828" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="12833" class="Symbol">}</a>
+    <a id="12839" class="Symbol">;</a> <a id="12841" class="Field">to∘from</a> <a id="12849" class="Symbol">=</a> <a id="12851" class="Symbol">λ{</a> <a id="12854" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12854" class="Bound">x</a> <a id="12856" class="Symbol">→</a> <a id="12858" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="12863" class="Symbol">}</a>
+    <a id="12869" class="Symbol">}</a>{% endraw %}</pre>
+
+{::comment}
+Having an _identity_ is different from having an identity
+_up to isomorphism_.  Compare the two statements:
+{:/}
+
+*幺元*和*在同构意义下的幺元*是不一样的。比较下列两个命题：
+
+    1 * m ≡ m
+    ⊤ × A ≃ A
+
+{::comment}
+In the first case, we might have that `m` is `2`, and both
+`1 * m` and `m` are equal to `2`.  In the second
+case, we might have that `A` is `Bool`, and `⊤ × Bool` is _not_ the
+same as `Bool`.  But there is an isomorphism between the two types.
+For instance, `⟨ tt , true ⟩`, which is a member of the former,
+corresponds to `true`, which is a member of the latter.
+{:/}
+
+在第一种情况下，我们可能有 `m` 是 `2`，那么 `1 * m` 和 `m` 都为 `2`。在第二种情况下，我们可能有 `A` 是 `Bool`，但是 `⊤ × Bool` 和 `Bool` 是不同的。例如：`⟨ tt , true ⟩` 是前者的成员，其对应后者的成员 `true`。
+
+{::comment}
+Right identity follows from commutativity of product and left identity:
+{:/}
+
+右幺元可以由积的交换律得来：
+
+<pre class="Agda">{% raw %}<a id="⊤-identityʳ"></a><a id="13721" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13721" class="Function">⊤-identityʳ</a> <a id="13733" class="Symbol">:</a> <a id="13735" class="Symbol">∀</a> <a id="13737" class="Symbol">{</a><a id="13738" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13738" class="Bound">A</a> <a id="13740" class="Symbol">:</a> <a id="13742" class="PrimitiveType">Set</a><a id="13745" class="Symbol">}</a> <a id="13747" class="Symbol">→</a> <a id="13749" class="Symbol">(</a><a id="13750" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13738" class="Bound">A</a> <a id="13752" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="13754" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10980" class="Datatype">⊤</a><a id="13755" class="Symbol">)</a> <a id="13757" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">≃</a> <a id="13759" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13738" class="Bound">A</a>
+<a id="13761" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13721" class="Function">⊤-identityʳ</a> <a id="13773" class="Symbol">{</a><a id="13774" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13774" class="Bound">A</a><a id="13775" class="Symbol">}</a> <a id="13777" class="Symbol">=</a>
+  <a id="13781" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#10861" class="Function Operator">≃-begin</a>
+    <a id="13793" class="Symbol">(</a><a id="13794" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13774" class="Bound">A</a> <a id="13796" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="13798" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10980" class="Datatype">⊤</a><a id="13799" class="Symbol">)</a>
+  <a id="13803" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#10945" class="Function Operator">≃⟨</a> <a id="13806" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#7931" class="Function">×-comm</a> <a id="13813" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#10945" class="Function Operator">⟩</a>
+    <a id="13819" class="Symbol">(</a><a id="13820" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#10980" class="Datatype">⊤</a> <a id="13822" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="13824" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13774" class="Bound">A</a><a id="13825" class="Symbol">)</a>
+  <a id="13829" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#10945" class="Function Operator">≃⟨</a> <a id="13832" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#12663" class="Function">⊤-identityˡ</a> <a id="13844" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#10945" class="Function Operator">⟩</a>
+    <a id="13850" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#13774" class="Bound">A</a>
+  <a id="13854" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#11064" class="Function Operator">≃-∎</a>{% endraw %}</pre>
+{::comment}
+Here we have used a chain of isomorphisms, analogous to that used for
+equality.
+{:/}
+
+我们在此使用了同构链，与等式链相似。
+
+{::comment}
+## Disjunction is sum
+{:/}
+
+## 析取即是和
+
+{::comment}
+Given two propositions `A` and `B`, the disjunction `A ⊎ B` holds
+if either `A` holds or `B` holds.  We formalise this idea by
+declaring a suitable inductive type:
+{:/}
+
+给定两个命题 `A` 和 `B`，析取 `A ⊎ B` 在 `A` 成立或者 `B` 成立时成立。我们将这个概念用合适的归纳类型来形式化：
+
+<pre class="Agda">{% raw %}<a id="14304" class="Keyword">data</a> <a id="_⊎_"></a><a id="14309" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">_⊎_</a> <a id="14313" class="Symbol">(</a><a id="14314" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14314" class="Bound">A</a> <a id="14316" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14316" class="Bound">B</a> <a id="14318" class="Symbol">:</a> <a id="14320" class="PrimitiveType">Set</a><a id="14323" class="Symbol">)</a> <a id="14325" class="Symbol">:</a> <a id="14327" class="PrimitiveType">Set</a> <a id="14331" class="Keyword">where</a>
+
+  <a id="_⊎_.inj₁"></a><a id="14340" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="14345" class="Symbol">:</a>
+      <a id="14353" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14314" class="Bound">A</a>
+      <a id="14361" class="Comment">-----</a>
+    <a id="14371" class="Symbol">→</a> <a id="14373" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14314" class="Bound">A</a> <a id="14375" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="14377" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14316" class="Bound">B</a>
+
+  <a id="_⊎_.inj₂"></a><a id="14382" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="14387" class="Symbol">:</a>
+      <a id="14395" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14316" class="Bound">B</a>
+      <a id="14403" class="Comment">-----</a>
+    <a id="14413" class="Symbol">→</a> <a id="14415" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14314" class="Bound">A</a> <a id="14417" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="14419" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14316" class="Bound">B</a>{% endraw %}</pre>
+{::comment}
+Evidence that `A ⊎ B` holds is either of the form `inj₁ M`, where `M`
+provides evidence that `A` holds, or `inj₂ N`, where `N` provides
+evidence that `B` holds.
+{:/}
+
+`A ⊎ B` 成立的证明有两个形式： `inj₁ M`，其中 `M` 是 `A` 成立的证明，或者
+`inj₂ N`，其中 `N` 是 `B` 成立的证明。
+
+{::comment}
+Given evidence that `A → C` and `B → C` both hold, then given
+evidence that `A ⊎ B` holds we can conclude that `C` holds:
+{:/}
+
+给定 `A → C` 和 `B → C` 成立的证明，那么给定一个 `A ⊎ B` 的证明，我们可以得出 `C` 成立：
+
+<pre class="Agda">{% raw %}<a id="case-⊎"></a><a id="14907" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14907" class="Function">case-⊎</a> <a id="14914" class="Symbol">:</a> <a id="14916" class="Symbol">∀</a> <a id="14918" class="Symbol">{</a><a id="14919" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14919" class="Bound">A</a> <a id="14921" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14921" class="Bound">B</a> <a id="14923" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14923" class="Bound">C</a> <a id="14925" class="Symbol">:</a> <a id="14927" class="PrimitiveType">Set</a><a id="14930" class="Symbol">}</a>
+  <a id="14934" class="Symbol">→</a> <a id="14936" class="Symbol">(</a><a id="14937" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14919" class="Bound">A</a> <a id="14939" class="Symbol">→</a> <a id="14941" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14923" class="Bound">C</a><a id="14942" class="Symbol">)</a>
+  <a id="14946" class="Symbol">→</a> <a id="14948" class="Symbol">(</a><a id="14949" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14921" class="Bound">B</a> <a id="14951" class="Symbol">→</a> <a id="14953" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14923" class="Bound">C</a><a id="14954" class="Symbol">)</a>
+  <a id="14958" class="Symbol">→</a> <a id="14960" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14919" class="Bound">A</a> <a id="14962" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="14964" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14921" class="Bound">B</a>
+    <a id="14970" class="Comment">-----------</a>
+  <a id="14984" class="Symbol">→</a> <a id="14986" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14923" class="Bound">C</a>
+<a id="14988" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14907" class="Function">case-⊎</a> <a id="14995" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14995" class="Bound">f</a> <a id="14997" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14997" class="Bound">g</a> <a id="14999" class="Symbol">(</a><a id="15000" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="15005" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#15005" class="Bound">x</a><a id="15006" class="Symbol">)</a> <a id="15008" class="Symbol">=</a> <a id="15010" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14995" class="Bound">f</a> <a id="15012" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#15005" class="Bound">x</a>
+<a id="15014" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14907" class="Function">case-⊎</a> <a id="15021" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#15021" class="Bound">f</a> <a id="15023" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#15023" class="Bound">g</a> <a id="15025" class="Symbol">(</a><a id="15026" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="15031" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#15031" class="Bound">y</a><a id="15032" class="Symbol">)</a> <a id="15034" class="Symbol">=</a> <a id="15036" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#15023" class="Bound">g</a> <a id="15038" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#15031" class="Bound">y</a>{% endraw %}</pre>
+{::comment}
+Pattern matching against `inj₁` and `inj₂` is typical of how we exploit
+evidence that a disjunction holds.
+{:/}
+
+对 `inj₁` 和 `inj₂` 进行模式匹配，是我们使用析取成立的证明的常见方法。
+
+{::comment}
+When `inj₁` and `inj₂` appear on the right-hand side of an equation we
+refer to them as _constructors_, and when they appear on the
+left-hand side we refer to them as _destructors_.  We also refer to
+`case-⊎` as a destructor, since it plays a similar role.  Other
+terminology refers to `inj₁` and `inj₂` as _introducing_ a
+disjunction, and to `case-⊎` as _eliminating_ a disjunction; indeed
+the former are sometimes given the names `⊎-I₁` and `⊎-I₂` and the
+latter the name `⊎-E`.
+{:/}
+
+当 `inj₁` 和 `inj₂` 在等式右手边出现的时候，我们将其称作*构造器*，当它出现在等式左边时，我们将其称作*析构器*。我们亦可将 `case-⊎`
+称作析构器，因为它们起到相似的效果。其他术语将 `inj₁` 和 `inj₂` 称为*引入*析取，将 `case-⊎` 称为*消去*析取。前者亦被称为 `⊎-I₁` 和 `⊎-I₂`，后者 `⊎-E`。
+
+{::comment}
+Applying the destructor to each of the constructors is the identity:
+{:/}
+
+对每个构造器使用析构器得到的是原来的值：
+
+<pre class="Agda">{% raw %}<a id="η-⊎"></a><a id="16027" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16027" class="Function">η-⊎</a> <a id="16031" class="Symbol">:</a> <a id="16033" class="Symbol">∀</a> <a id="16035" class="Symbol">{</a><a id="16036" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16036" class="Bound">A</a> <a id="16038" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16038" class="Bound">B</a> <a id="16040" class="Symbol">:</a> <a id="16042" class="PrimitiveType">Set</a><a id="16045" class="Symbol">}</a> <a id="16047" class="Symbol">(</a><a id="16048" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16048" class="Bound">w</a> <a id="16050" class="Symbol">:</a> <a id="16052" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16036" class="Bound">A</a> <a id="16054" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="16056" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16038" class="Bound">B</a><a id="16057" class="Symbol">)</a> <a id="16059" class="Symbol">→</a> <a id="16061" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14907" class="Function">case-⊎</a> <a id="16068" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="16073" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="16078" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16048" class="Bound">w</a> <a id="16080" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">≡</a> <a id="16082" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16048" class="Bound">w</a>
+<a id="16084" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16027" class="Function">η-⊎</a> <a id="16088" class="Symbol">(</a><a id="16089" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="16094" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16094" class="Bound">x</a><a id="16095" class="Symbol">)</a> <a id="16097" class="Symbol">=</a> <a id="16099" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+<a id="16104" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16027" class="Function">η-⊎</a> <a id="16108" class="Symbol">(</a><a id="16109" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="16114" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16114" class="Bound">y</a><a id="16115" class="Symbol">)</a> <a id="16117" class="Symbol">=</a> <a id="16119" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>{% endraw %}</pre>
+{::comment}
+More generally, we can also throw in an arbitrary function from a disjunction:
+{:/}
+
+更普遍地来说，我们亦可对于析取使用一个任意的函数：
+
+<pre class="Agda">{% raw %}<a id="uniq-⊎"></a><a id="16272" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16272" class="Function">uniq-⊎</a> <a id="16279" class="Symbol">:</a> <a id="16281" class="Symbol">∀</a> <a id="16283" class="Symbol">{</a><a id="16284" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16284" class="Bound">A</a> <a id="16286" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16286" class="Bound">B</a> <a id="16288" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16288" class="Bound">C</a> <a id="16290" class="Symbol">:</a> <a id="16292" class="PrimitiveType">Set</a><a id="16295" class="Symbol">}</a> <a id="16297" class="Symbol">(</a><a id="16298" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16298" class="Bound">h</a> <a id="16300" class="Symbol">:</a> <a id="16302" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16284" class="Bound">A</a> <a id="16304" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="16306" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16286" class="Bound">B</a> <a id="16308" class="Symbol">→</a> <a id="16310" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16288" class="Bound">C</a><a id="16311" class="Symbol">)</a> <a id="16313" class="Symbol">(</a><a id="16314" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16314" class="Bound">w</a> <a id="16316" class="Symbol">:</a> <a id="16318" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16284" class="Bound">A</a> <a id="16320" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="16322" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16286" class="Bound">B</a><a id="16323" class="Symbol">)</a> <a id="16325" class="Symbol">→</a>
+  <a id="16329" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14907" class="Function">case-⊎</a> <a id="16336" class="Symbol">(</a><a id="16337" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16298" class="Bound">h</a> <a id="16339" href="https://agda.github.io/agda-stdlib/v0.17/Function.html#769" class="Function Operator">∘</a> <a id="16341" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a><a id="16345" class="Symbol">)</a> <a id="16347" class="Symbol">(</a><a id="16348" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16298" class="Bound">h</a> <a id="16350" href="https://agda.github.io/agda-stdlib/v0.17/Function.html#769" class="Function Operator">∘</a> <a id="16352" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a><a id="16356" class="Symbol">)</a> <a id="16358" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16314" class="Bound">w</a> <a id="16360" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">≡</a> <a id="16362" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16298" class="Bound">h</a> <a id="16364" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16314" class="Bound">w</a>
+<a id="16366" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16272" class="Function">uniq-⊎</a> <a id="16373" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16373" class="Bound">h</a> <a id="16375" class="Symbol">(</a><a id="16376" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="16381" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16381" class="Bound">x</a><a id="16382" class="Symbol">)</a> <a id="16384" class="Symbol">=</a> <a id="16386" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+<a id="16391" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16272" class="Function">uniq-⊎</a> <a id="16398" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16398" class="Bound">h</a> <a id="16400" class="Symbol">(</a><a id="16401" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="16406" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#16406" class="Bound">y</a><a id="16407" class="Symbol">)</a> <a id="16409" class="Symbol">=</a> <a id="16411" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>{% endraw %}</pre>
+{::comment}
+The pattern matching on the left-hand side is essential.  Replacing
+`w` by `inj₁ x` allows both sides of the propositional equality to
+simplify to the same term, and similarly for `inj₂ y`.
+{:/}
+
+左手边的模式匹配是必要的。用 `inj₁ x` 来替换 `w` 让等式的两边可以化简成相同的项，
+`inj₂ y` 同理。
+
+{::comment}
+We set the precedence of disjunction so that it binds less tightly
+than any other declared operator:
+{:/}
+
+我们设置析取的优先级，使它与任何已经定义的运算符都结合的不紧密：
+
+<pre class="Agda">{% raw %}<a id="16864" class="Keyword">infix</a> <a id="16870" class="Number">1</a> <a id="16872" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">_⊎_</a>{% endraw %}</pre>
+{::comment}
+Thus, `A × C ⊎ B × C` parses as `(A × C) ⊎ (B × C)`.
+{:/}
+
+因此 `A × C ⊎ B × C` 解析为 `(A × C) ⊎ (B × C)`。
+
+{::comment}
+Given two types `A` and `B`, we refer to `A ⊎ B` as the
+_sum_ of `A` and `B`.  In set theory, it is also sometimes
+called the _disjoint union_, and in computing it corresponds
+to a _variant record_ type. Among other reasons for
+calling it the sum, note that if type `A` has `m`
+distinct members, and type `B` has `n` distinct members,
+then the type `A ⊎ B` has `m + n` distinct members.
+For instance, consider a type `Bool` with two members, and
+a type `Tri` with three members, as defined earlier.
+Then the type `Bool ⊎ Tri` has five
+members:
+{:/}
+
+给定两个类型 `A` 和 `B`，我们将 `A ⊎ B` 称为 `A` 与 `B` 的*和*。在集合论中它也被称作*不交并*（Disjoint Union），在计算机科学中它对应*变体记录*类型。如果类型 `A` 有 `m` 个不同的成员，类型 `B` 有 `n` 个不同的成员，那么类型 `A ⊎ B` 有 `m + n` 个不同的成员。这也是它被称为和的原因之一。例如，考虑有两个成员的 `Bool` 类型，和有三个成员的 `Tri` 类型，如之前的定义。那么，`Bool ⊎ Tri` 类型有如下的五个成员：
+
+    inj₁ true     inj₂ aa
+    inj₁ false    inj₂ bb
+                  inj₂ cc
+
+{::comment}
+For example, the following function enumerates all
+possible arguments of type `Bool ⊎ Tri`:
+{:/}
+
+下面的函数枚举了所有类型为 `Bool ⊎ Tri` 的参数：
+
+<pre class="Agda">{% raw %}<a id="⊎-count"></a><a id="18064" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#18064" class="Function">⊎-count</a> <a id="18072" class="Symbol">:</a> <a id="18074" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6448" class="Datatype">Bool</a> <a id="18079" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="18081" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6501" class="Datatype">Tri</a> <a id="18085" class="Symbol">→</a> <a id="18087" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a>
+<a id="18089" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#18064" class="Function">⊎-count</a> <a id="18097" class="Symbol">(</a><a id="18098" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="18103" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6467" class="InductiveConstructor">true</a><a id="18107" class="Symbol">)</a>   <a id="18111" class="Symbol">=</a>  <a id="18114" class="Number">1</a>
+<a id="18116" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#18064" class="Function">⊎-count</a> <a id="18124" class="Symbol">(</a><a id="18125" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="18130" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6482" class="InductiveConstructor">false</a><a id="18135" class="Symbol">)</a>  <a id="18138" class="Symbol">=</a>  <a id="18141" class="Number">2</a>
+<a id="18143" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#18064" class="Function">⊎-count</a> <a id="18151" class="Symbol">(</a><a id="18152" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="18157" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a><a id="18159" class="Symbol">)</a>     <a id="18165" class="Symbol">=</a>  <a id="18168" class="Number">3</a>
+<a id="18170" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#18064" class="Function">⊎-count</a> <a id="18178" class="Symbol">(</a><a id="18179" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="18184" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a><a id="18186" class="Symbol">)</a>     <a id="18192" class="Symbol">=</a>  <a id="18195" class="Number">4</a>
+<a id="18197" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#18064" class="Function">⊎-count</a> <a id="18205" class="Symbol">(</a><a id="18206" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="18211" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a><a id="18213" class="Symbol">)</a>     <a id="18219" class="Symbol">=</a>  <a id="18222" class="Number">5</a>{% endraw %}</pre>
+
+{::comment}
+Sum on types also shares a property with sum on numbers in that it is
+commutative and associative _up to isomorphism_.
+{:/}
+
+类型上的和与数的和有相似的性质——它们满足交换律和结合律。更确切地说，和在*在同构意义下*是交换和结合的。
+
+{::comment}
+#### Exercise `⊎-comm` (recommended)
+{:/}
+
+#### 练习 `⊎-comm` （推荐）
+
+{::comment}
+Show sum is commutative up to isomorphism.
+{:/}
+
+证明和类型在同构意义下满足交换律。
+
+{::comment}
+<pre class="Agda">{% raw %}<a id="18612" class="Comment">-- Your code goes here</a>{% endraw %}</pre>
+{:/}
+
+<pre class="Agda">{% raw %}<a id="18665" class="Comment">-- 请将代码写在此处。</a>{% endraw %}</pre>
+
+{::comment}
+#### Exercise `⊎-assoc`
+{:/}
+
+#### 练习 `⊎-assoc`
+
+{::comment}
+Show sum is associative up to isomorphism.
+{:/}
+
+证明和类型在同构意义下满足结合律。
+
+{::comment}
+<pre class="Agda">{% raw %}<a id="18856" class="Comment">-- Your code goes here</a>{% endraw %}</pre>
+{:/}
+
+<pre class="Agda">{% raw %}<a id="18909" class="Comment">-- 请将代码写在此处。</a>{% endraw %}</pre>
+
+{::comment}
+## False is empty
+{:/}
+
+## 假即是空类型
+
+{::comment}
+False `⊥` never holds.  We formalise this idea by declaring
+a suitable inductive type:
+{:/}
+
+恒假 `⊥` 从不成立。我们将这个概念用合适的归纳类型来形式化：
+
+{::comment}
+FIXME: the code block is removed to make Agda not recognise this as code.
+data ⊥ : Set where
+  -- no clauses!
+{:/}
+
+<pre class="Agda">{% raw %}<a id="19261" class="Keyword">data</a> <a id="⊥"></a><a id="19266" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#19266" class="Datatype">⊥</a> <a id="19268" class="Symbol">:</a> <a id="19270" class="PrimitiveType">Set</a> <a id="19274" class="Keyword">where</a>
+  <a id="19282" class="Comment">-- 没有语句！</a>{% endraw %}</pre>
+
+{::comment}
+There is no possible evidence that `⊥` holds.
+{:/}
+
+没有 `⊥` 成立的证明。
+
+{::comment}
+Dual to `⊤`, for `⊥` there is no introduction rule but an elimination rule.
+Since false never holds, knowing that it holds tells us we are in a
+paradoxical situation.  Given evidence that `⊥` holds, we might
+conclude anything!  This is a basic principle of logic, known in
+medieval times by the Latin phrase _ex falso_, and known to children
+through phrases such as "if pigs had wings, then I'd be the Queen of
+Sheba".  We formalise it as follows:
+{:/}
+
+与 `⊤` 相对偶，`⊥` 没有引入规则，但是有消去规则。因为恒假从不成立，如果它一旦成立，我们就进入了矛盾之中。给定 `⊥` 成立的证明，我们可以得出任何结论！这是逻辑学的基本原理，又由中世纪的拉丁文词组 _ex falso_ 为名。小孩子也由诸如
+“如果猪有翅膀，那我就是示巴女王”的词组中知晓。我们如下将它形式化：
+
+<pre class="Agda">{% raw %}<a id="⊥-elim"></a><a id="20025" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20025" class="Function">⊥-elim</a> <a id="20032" class="Symbol">:</a> <a id="20034" class="Symbol">∀</a> <a id="20036" class="Symbol">{</a><a id="20037" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20037" class="Bound">A</a> <a id="20039" class="Symbol">:</a> <a id="20041" class="PrimitiveType">Set</a><a id="20044" class="Symbol">}</a>
+  <a id="20048" class="Symbol">→</a> <a id="20050" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#19266" class="Datatype">⊥</a>
+    <a id="20056" class="Comment">--</a>
+  <a id="20061" class="Symbol">→</a> <a id="20063" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20037" class="Bound">A</a>
+<a id="20065" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20025" class="Function">⊥-elim</a> <a id="20072" class="Symbol">()</a>{% endraw %}</pre>
+{::comment}
+This is our first use of the _absurd pattern_ `()`.
+Here since `⊥` is a type with no members, we indicate that it is
+_never_ possible to match against a value of this type by using
+the pattern `()`.
+{:/}
+
+这是我们第一次使用*荒谬模式*（Absurd Pattern） `()`。在这里，因为 `⊥`
+是一个没有成员的类型，我们用 `()` 模式来指明这里不可能匹配任何这个类型的值。
+
+{::comment}
+The nullary case of `case-⊎` is `⊥-elim`.  By analogy,
+we might have called it `case-⊥`, but chose to stick with the name
+in the standard library.
+{:/}
+
+`case-⊎` 的零元形式是 `⊥-elim`。类比的来说，它应该叫做 `case-⊥`，但是我们在此使用标准库中使用的名字。
+
+{::comment}
+The nullary case of `uniq-⊎` is `uniq-⊥`, which asserts that `⊥-elim`
+is equal to any arbitrary function from `⊥`:
+{:/}
+
+`uniq-⊎` 的零元形式是 `uniq-⊥`，其断言了 `⊥-elim` 和任何取 `⊥` 的函数是等价的。
+
+<pre class="Agda">{% raw %}<a id="uniq-⊥"></a><a id="20830" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20830" class="Function">uniq-⊥</a> <a id="20837" class="Symbol">:</a> <a id="20839" class="Symbol">∀</a> <a id="20841" class="Symbol">{</a><a id="20842" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20842" class="Bound">C</a> <a id="20844" class="Symbol">:</a> <a id="20846" class="PrimitiveType">Set</a><a id="20849" class="Symbol">}</a> <a id="20851" class="Symbol">(</a><a id="20852" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20852" class="Bound">h</a> <a id="20854" class="Symbol">:</a> <a id="20856" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#19266" class="Datatype">⊥</a> <a id="20858" class="Symbol">→</a> <a id="20860" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20842" class="Bound">C</a><a id="20861" class="Symbol">)</a> <a id="20863" class="Symbol">(</a><a id="20864" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20864" class="Bound">w</a> <a id="20866" class="Symbol">:</a> <a id="20868" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#19266" class="Datatype">⊥</a><a id="20869" class="Symbol">)</a> <a id="20871" class="Symbol">→</a> <a id="20873" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20025" class="Function">⊥-elim</a> <a id="20880" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20864" class="Bound">w</a> <a id="20882" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">≡</a> <a id="20884" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20852" class="Bound">h</a> <a id="20886" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20864" class="Bound">w</a>
+<a id="20888" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20830" class="Function">uniq-⊥</a> <a id="20895" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#20895" class="Bound">h</a> <a id="20897" class="Symbol">()</a>{% endraw %}</pre>
+{::comment}
+Using the absurd pattern asserts there are no possible values for `w`,
+so the equation holds trivially.
+{:/}
+
+使用荒谬模式断言了 `w` 没有任何可能的值，因此等式显然成立。
+
+{::comment}
+We refer to `⊥` as the _empty_ type. And, indeed,
+type `⊥` has no members. For example, the following function
+enumerates all possible arguments of type `⊥`:
+
+我们将 `⊥` 成为*空*类型（Empty Type）。实际上，`⊥` 类型没有成员。例如，下面的函数枚举了所有 `⊥` 类型的参数：
+
+{:/}
+<pre class="Agda">{% raw %}<a id="⊥-count"></a><a id="21326" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#21326" class="Function">⊥-count</a> <a id="21334" class="Symbol">:</a> <a id="21336" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#19266" class="Datatype">⊥</a> <a id="21338" class="Symbol">→</a> <a id="21340" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a>
+<a id="21342" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#21326" class="Function">⊥-count</a> <a id="21350" class="Symbol">()</a>{% endraw %}</pre>
+{::comment}
+Here again the absurd pattern `()` indicates that no value can match
+type `⊥`.
+{:/}
+
+同样，荒谬模式告诉我们没有值可以来匹配类型 `⊥`。
+
+{::comment}
+For numbers, zero is the identity of addition. Correspondingly, empty
+is the identity of sums _up to isomorphism_.
+{:/}
+
+对于数来说，0 是加法的幺元。对应地，空是和的幺元（*在同构意义下*）。
+
+{::comment}
+#### Exercise `⊥-identityˡ` (recommended)
+{:/}
+
+#### 练习 `⊥-identityˡ` （推荐）
+
+{::comment}
+Show empty is the left identity of sums up to isomorphism.
+{:/}
+
+证明空在同构意义下是和的左幺元。
+
+{::comment}
+<pre class="Agda">{% raw %}<a id="21868" class="Comment">-- Your code goes here</a>{% endraw %}</pre>
+{:/}
+
+<pre class="Agda">{% raw %}<a id="21921" class="Comment">-- 请将代码写在此处。</a>{% endraw %}</pre>
+
+{::comment}
+#### Exercise `⊥-identityʳ`
+{:/}
+
+#### 练习 `⊥-identityʳ`
+
+{::comment}
+Show empty is the right identity of sums up to isomorphism.
+{:/}
+
+证明空在同构意义下是和的右幺元。
+
+{::comment}
+<pre class="Agda">{% raw %}<a id="22136" class="Comment">-- Your code goes here</a>{% endraw %}</pre>
+{:/}
+
+<pre class="Agda">{% raw %}<a id="22189" class="Comment">-- 请将代码写在此处。</a>{% endraw %}</pre>
+
+{::comment}
+## Implication is function {#implication}
+{:/}
+
+## 蕴含即是函数 {#implication}
+
+{::comment}
+Given two propositions `A` and `B`, the implication `A → B` holds if
+whenever `A` holds then `B` must also hold.  We formalise implication using
+the function type, which has appeared throughout this book.
+{:/}
+
+给定两个命题 `A` 和 `B`，其蕴含 `A → B` 在任何 `A` 成立的时候，`B` 也成立时成立。我们用函数类型来形式化蕴含，如本书中通篇出现的那样。
+
+
+{::comment}
+Evidence that `A → B` holds is of the form
+{:/}
+
+`A → B` 成立的证据由下面的形式组成：
+
+    λ (x : A) → N
+
+{::comment}
+where `N` is a term of type `B` containing as a free variable `x` of type `A`.
+Given a term `L` providing evidence that `A → B` holds, and a term `M`
+providing evidence that `A` holds, the term `L M` provides evidence that
+`B` holds.  In other words, evidence that `A → B` holds is a function that
+converts evidence that `A` holds into evidence that `B` holds.
+{:/}
+
+其中 `N` 是一个类型为 `B` 的项，其包括了一个类型为 `A` 的自由变量 `x`。给定一个 `A → B` 成立的证明 `L`，和一个 `A` 成立的证明 `M`，那么 `L M` 是 `B` 成立的证明。也就是说，`A → B` 成立的证明是一个函数，将 `A` 成立的证明转换成 `B` 成立的证明。
+
+{::comment}
+Put another way, if we know that `A → B` and `A` both hold,
+then we may conclude that `B` holds:
+{:/}
+
+换句话说，如果知道 `A → B` 和 `A` 同时成立，那么我们可以推出 `B` 成立：
+
+<pre class="Agda">{% raw %}<a id="→-elim"></a><a id="23425" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23425" class="Function">→-elim</a> <a id="23432" class="Symbol">:</a> <a id="23434" class="Symbol">∀</a> <a id="23436" class="Symbol">{</a><a id="23437" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23437" class="Bound">A</a> <a id="23439" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23439" class="Bound">B</a> <a id="23441" class="Symbol">:</a> <a id="23443" class="PrimitiveType">Set</a><a id="23446" class="Symbol">}</a>
+  <a id="23450" class="Symbol">→</a> <a id="23452" class="Symbol">(</a><a id="23453" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23437" class="Bound">A</a> <a id="23455" class="Symbol">→</a> <a id="23457" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23439" class="Bound">B</a><a id="23458" class="Symbol">)</a>
+  <a id="23462" class="Symbol">→</a> <a id="23464" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23437" class="Bound">A</a>
+    <a id="23470" class="Comment">-------</a>
+  <a id="23480" class="Symbol">→</a> <a id="23482" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23439" class="Bound">B</a>
+<a id="23484" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23425" class="Function">→-elim</a> <a id="23491" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23491" class="Bound">L</a> <a id="23493" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23493" class="Bound">M</a> <a id="23495" class="Symbol">=</a> <a id="23497" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23491" class="Bound">L</a> <a id="23499" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#23493" class="Bound">M</a>{% endraw %}</pre>
+{::comment}
+In medieval times, this rule was known by the name _modus ponens_.
+It corresponds to function application.
+{:/}
+
+在中世纪，这条规则被叫做 _modus ponens_，它与函数应用相对应。
+
+{::comment}
+Defining a function, with a named definition or a lambda abstraction,
+is referred to as _introducing_ a function,
+while applying a function is referred to as _eliminating_ the function.
+{:/}
+
+定义一个函数，不管是带名字的定义或是使用 Lambda 抽象，被称为*引入*一个函数，使用一个函数被称为*消去*一个函数。
+
+{::comment}
+Elimination followed by introduction is the identity:
+{:/}
+
+引入后接着消去，得到的还是原来的值：
+
+<pre class="Agda">{% raw %}<a id="η-→"></a><a id="24050" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24050" class="Function">η-→</a> <a id="24054" class="Symbol">:</a> <a id="24056" class="Symbol">∀</a> <a id="24058" class="Symbol">{</a><a id="24059" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24059" class="Bound">A</a> <a id="24061" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24061" class="Bound">B</a> <a id="24063" class="Symbol">:</a> <a id="24065" class="PrimitiveType">Set</a><a id="24068" class="Symbol">}</a> <a id="24070" class="Symbol">(</a><a id="24071" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24071" class="Bound">f</a> <a id="24073" class="Symbol">:</a> <a id="24075" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24059" class="Bound">A</a> <a id="24077" class="Symbol">→</a> <a id="24079" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24061" class="Bound">B</a><a id="24080" class="Symbol">)</a> <a id="24082" class="Symbol">→</a> <a id="24084" class="Symbol">(λ</a> <a id="24087" class="Symbol">(</a><a id="24088" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24088" class="Bound">x</a> <a id="24090" class="Symbol">:</a> <a id="24092" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24059" class="Bound">A</a><a id="24093" class="Symbol">)</a> <a id="24095" class="Symbol">→</a> <a id="24097" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24071" class="Bound">f</a> <a id="24099" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24088" class="Bound">x</a><a id="24100" class="Symbol">)</a> <a id="24102" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#83" class="Datatype Operator">≡</a> <a id="24104" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24071" class="Bound">f</a>
+<a id="24106" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24050" class="Function">η-→</a> <a id="24110" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#24110" class="Bound">f</a> <a id="24112" class="Symbol">=</a> <a id="24114" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>{% endraw %}</pre>
+
+{::comment}
+Implication binds less tightly than any other operator. Thus, `A ⊎ B →
+B ⊎ A` parses as `(A ⊎ B) → (B ⊎ A)`.
+{:/}
+
+蕴含比其他的运算符结合得都不紧密。因此 `A ⊎ B → B ⊎ A` 被解析为 `(A ⊎ B) → (B ⊎ A)`。
+
+{::comment}
+Given two types `A` and `B`, we refer to `A → B` as the _function_
+space from `A` to `B`.  It is also sometimes called the _exponential_,
+with `B` raised to the `A` power.  Among other reasons for calling
+it the exponential, note that if type `A` has `m` distinct
+members, and type `B` has `n` distinct members, then the type
+`A → B` has `nᵐ` distinct members.  For instance, consider a
+type `Bool` with two members and a type `Tri` with three members,
+as defined earlier. Then the type `Bool → Tri` has nine (that is,
+three squared) members:
+{:/}
+
+给定两个类型 `A` 和 `B`，我们将 `A → B` 称为从 `A` 到 `B` 的*函数*空间。它有时也被称作以 `B` 为底，`A` 为次数的*幂*。如果类型 `A` 有 `m` 个不同的成员，类型 `B` 有 `n` 个不同的成员，那么类型 `A × B` 有 `nᵐ` 个不同的成员。这也是它被称为幂的原因之一。例如，考虑有两个成员的 `Bool` 类型，和有三个成员的 `Tri` 类型，如之前的定义。那么，`Bool → Tri` 类型有如下的九个成员（三的平方）：
+
+    λ{true → aa; false → aa}  λ{true → aa; false → bb}  λ{true → aa; false → cc}
+    λ{true → bb; false → aa}  λ{true → bb; false → bb}  λ{true → bb; false → cc}
+    λ{true → cc; false → aa}  λ{true → cc; false → bb}  λ{true → cc; false → cc}
+
+{::comment}
+For example, the following function enumerates all possible
+arguments of the type `Bool → Tri`:
+{:/}
+
+下面的函数枚举了所有类型为 `Bool → Tri` 的参数：
+
+<pre class="Agda">{% raw %}<a id="→-count"></a><a id="25533" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#25533" class="Function">→-count</a> <a id="25541" class="Symbol">:</a> <a id="25543" class="Symbol">(</a><a id="25544" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6448" class="Datatype">Bool</a> <a id="25549" class="Symbol">→</a> <a id="25551" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6501" class="Datatype">Tri</a><a id="25554" class="Symbol">)</a> <a id="25556" class="Symbol">→</a> <a id="25558" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Nat.html#97" class="Datatype">ℕ</a>
+<a id="25560" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#25533" class="Function">→-count</a> <a id="25568" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#25568" class="Bound">f</a> <a id="25570" class="Keyword">with</a> <a id="25575" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#25568" class="Bound">f</a> <a id="25577" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6467" class="InductiveConstructor">true</a> <a id="25582" class="Symbol">|</a> <a id="25584" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#25568" class="Bound">f</a> <a id="25586" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6482" class="InductiveConstructor">false</a>
+<a id="25592" class="Symbol">...</a>          <a id="25605" class="Symbol">|</a> <a id="25607" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a>     <a id="25614" class="Symbol">|</a> <a id="25616" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a>      <a id="25624" class="Symbol">=</a>   <a id="25628" class="Number">1</a>
+<a id="25630" class="Symbol">...</a>          <a id="25643" class="Symbol">|</a> <a id="25645" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a>     <a id="25652" class="Symbol">|</a> <a id="25654" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a>      <a id="25662" class="Symbol">=</a>   <a id="25666" class="Number">2</a>
+<a id="25668" class="Symbol">...</a>          <a id="25681" class="Symbol">|</a> <a id="25683" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a>     <a id="25690" class="Symbol">|</a> <a id="25692" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a>      <a id="25700" class="Symbol">=</a>   <a id="25704" class="Number">3</a>
+<a id="25706" class="Symbol">...</a>          <a id="25719" class="Symbol">|</a> <a id="25721" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a>     <a id="25728" class="Symbol">|</a> <a id="25730" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a>      <a id="25738" class="Symbol">=</a>   <a id="25742" class="Number">4</a>
+<a id="25744" class="Symbol">...</a>          <a id="25757" class="Symbol">|</a> <a id="25759" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a>     <a id="25766" class="Symbol">|</a> <a id="25768" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a>      <a id="25776" class="Symbol">=</a>   <a id="25780" class="Number">5</a>
+<a id="25782" class="Symbol">...</a>          <a id="25795" class="Symbol">|</a> <a id="25797" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a>     <a id="25804" class="Symbol">|</a> <a id="25806" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a>      <a id="25814" class="Symbol">=</a>   <a id="25818" class="Number">6</a>
+<a id="25820" class="Symbol">...</a>          <a id="25833" class="Symbol">|</a> <a id="25835" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a>     <a id="25842" class="Symbol">|</a> <a id="25844" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6519" class="InductiveConstructor">aa</a>      <a id="25852" class="Symbol">=</a>   <a id="25856" class="Number">7</a>
+<a id="25858" class="Symbol">...</a>          <a id="25871" class="Symbol">|</a> <a id="25873" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a>     <a id="25880" class="Symbol">|</a> <a id="25882" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6530" class="InductiveConstructor">bb</a>      <a id="25890" class="Symbol">=</a>   <a id="25894" class="Number">8</a>
+<a id="25896" class="Symbol">...</a>          <a id="25909" class="Symbol">|</a> <a id="25911" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a>     <a id="25918" class="Symbol">|</a> <a id="25920" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#6541" class="InductiveConstructor">cc</a>      <a id="25928" class="Symbol">=</a>   <a id="25932" class="Number">9</a>{% endraw %}</pre>
+
+{::comment}
+Exponential on types also share a property with exponential on
+numbers in that many of the standard identities for numbers carry
+over to the types.
+{:/}
+
+类型上的幂与数的幂有相似的性质，很多数上成立的关系式也可以在类型上成立。
+
+{::comment}
+Corresponding to the law
+{:/}
+
+对应如下的定律：
+
+    (p ^ n) ^ m  ≡  p ^ (n * m)
+
+{::comment}
+we have the isomorphism
+{:/}
+
+我们有如下的同构：
+
+    A → (B → C)  ≃  (A × B) → C
+
+{::comment}
+Both types can be viewed as functions that given evidence that `A` holds
+and evidence that `B` holds can return evidence that `C` holds.
+This isomorphism sometimes goes by the name *currying*.
+The proof of the right inverse requires extensionality:
+{:/}
+
+两个类型可以被看作给定 `A` 成立的证据和 `B` 成立的证据，返回 `C` 成立的证据。这个同构有时也被称作*柯里化*（Currying）。右逆的证明需要外延性：
+
+<pre class="Agda">{% raw %}<a id="currying"></a><a id="26688" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26688" class="Function">currying</a> <a id="26697" class="Symbol">:</a> <a id="26699" class="Symbol">∀</a> <a id="26701" class="Symbol">{</a><a id="26702" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26702" class="Bound">A</a> <a id="26704" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26704" class="Bound">B</a> <a id="26706" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26706" class="Bound">C</a> <a id="26708" class="Symbol">:</a> <a id="26710" class="PrimitiveType">Set</a><a id="26713" class="Symbol">}</a> <a id="26715" class="Symbol">→</a> <a id="26717" class="Symbol">(</a><a id="26718" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26702" class="Bound">A</a> <a id="26720" class="Symbol">→</a> <a id="26722" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26704" class="Bound">B</a> <a id="26724" class="Symbol">→</a> <a id="26726" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26706" class="Bound">C</a><a id="26727" class="Symbol">)</a> <a id="26729" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">≃</a> <a id="26731" class="Symbol">(</a><a id="26732" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26702" class="Bound">A</a> <a id="26734" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="26736" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26704" class="Bound">B</a> <a id="26738" class="Symbol">→</a> <a id="26740" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26706" class="Bound">C</a><a id="26741" class="Symbol">)</a>
+<a id="26743" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26688" class="Function">currying</a> <a id="26752" class="Symbol">=</a>
+  <a id="26756" class="Keyword">record</a>
+    <a id="26767" class="Symbol">{</a> <a id="26769" class="Field">to</a>      <a id="26777" class="Symbol">=</a>  <a id="26780" class="Symbol">λ{</a> <a id="26783" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26783" class="Bound">f</a> <a id="26785" class="Symbol">→</a> <a id="26787" class="Symbol">λ{</a> <a id="26790" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="26792" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26792" class="Bound">x</a> <a id="26794" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="26796" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26796" class="Bound">y</a> <a id="26798" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="26800" class="Symbol">→</a> <a id="26802" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26783" class="Bound">f</a> <a id="26804" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26792" class="Bound">x</a> <a id="26806" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26796" class="Bound">y</a> <a id="26808" class="Symbol">}}</a>
+    <a id="26815" class="Symbol">;</a> <a id="26817" class="Field">from</a>    <a id="26825" class="Symbol">=</a>  <a id="26828" class="Symbol">λ{</a> <a id="26831" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26831" class="Bound">g</a> <a id="26833" class="Symbol">→</a> <a id="26835" class="Symbol">λ{</a> <a id="26838" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26838" class="Bound">x</a> <a id="26840" class="Symbol">→</a> <a id="26842" class="Symbol">λ{</a> <a id="26845" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26845" class="Bound">y</a> <a id="26847" class="Symbol">→</a> <a id="26849" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26831" class="Bound">g</a> <a id="26851" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="26853" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26838" class="Bound">x</a> <a id="26855" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="26857" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26845" class="Bound">y</a> <a id="26859" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="26861" class="Symbol">}}}</a>
+    <a id="26869" class="Symbol">;</a> <a id="26871" class="Field">from∘to</a> <a id="26879" class="Symbol">=</a>  <a id="26882" class="Symbol">λ{</a> <a id="26885" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26885" class="Bound">f</a> <a id="26887" class="Symbol">→</a> <a id="26889" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="26894" class="Symbol">}</a>
+    <a id="26900" class="Symbol">;</a> <a id="26902" class="Field">to∘from</a> <a id="26910" class="Symbol">=</a>  <a id="26913" class="Symbol">λ{</a> <a id="26916" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26916" class="Bound">g</a> <a id="26918" class="Symbol">→</a> <a id="26920" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#3801" class="Postulate">extensionality</a> <a id="26935" class="Symbol">λ{</a> <a id="26938" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="26940" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26940" class="Bound">x</a> <a id="26942" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="26944" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#26944" class="Bound">y</a> <a id="26946" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="26948" class="Symbol">→</a> <a id="26950" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="26955" class="Symbol">}}</a>
+    <a id="26962" class="Symbol">}</a>{% endraw %}</pre>
+
+{::comment}
+Currying tells us that instead of a function that takes a pair of arguments,
+we can have a function that takes the first argument and returns a function that
+expects the second argument.  Thus, for instance, our way of writing addition
+{:/}
+
+柯里化告诉我们，如果一个函数有取一个数据对作为参数，那么我们可以构造一个函数，取第一个参数，返回一个取第二个参数，返回最终结果的函数。因此，举例来说，下面表示加法的形式：
+
+    _+_ : ℕ → ℕ → ℕ
+
+{::comment}
+is isomorphic to a function that accepts a pair of arguments:
+{:/}
+
+和下面的一个带有一个数据对作为参数的函数是同构的：
+
+    _+′_ : (ℕ × ℕ) → ℕ
+
+{::comment}
+Agda is optimised for currying, so `2 + 3` abbreviates `_+_ 2 3`.
+In a language optimised for pairing, we would instead take `2 +′ 3` as
+an abbreviation for `_+′_ ⟨ 2 , 3 ⟩`.
+{:/}
+
+Agda 对柯里化进行了优化，因此 `2 + 3` 是 `_+_ 2 3` 的简写。在一个对有序对进行优化的语言里，
+`2 +′ 3` 可能是 `_+′_ ⟨ 2 , 3 ⟩` 的简写。
+
+{::comment}
+Corresponding to the law
+{:/}
+
+对应如下的定律：
+
+    p ^ (n + m) = (p ^ n) * (p ^ m)
+
+{::comment}
+we have the isomorphism:
+{:/}
+
+我们有如下的同构：
+
+    (A ⊎ B) → C  ≃  (A → C) × (B → C)
+
+{::comment}
+That is, the assertion that if either `A` holds or `B` holds then `C` holds
+is the same as the assertion that if `A` holds then `C` holds and if
+`B` holds then `C` holds.  The proof of the left inverse requires extensionality:
+{:/}
+
+命题如果 `A` 成立或者 `B` 成立，那么 `C` 成立，和命题如果 `A` 成立，那么 `C` 成立以及如果 `B` 成立，那么 `C` 成立，是一样的。左逆的证明需要外延性：
+
+<pre class="Agda">{% raw %}<a id="→-distrib-⊎"></a><a id="28294" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28294" class="Function">→-distrib-⊎</a> <a id="28306" class="Symbol">:</a> <a id="28308" class="Symbol">∀</a> <a id="28310" class="Symbol">{</a><a id="28311" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28311" class="Bound">A</a> <a id="28313" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28313" class="Bound">B</a> <a id="28315" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28315" class="Bound">C</a> <a id="28317" class="Symbol">:</a> <a id="28319" class="PrimitiveType">Set</a><a id="28322" class="Symbol">}</a> <a id="28324" class="Symbol">→</a> <a id="28326" class="Symbol">(</a><a id="28327" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28311" class="Bound">A</a> <a id="28329" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="28331" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28313" class="Bound">B</a> <a id="28333" class="Symbol">→</a> <a id="28335" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28315" class="Bound">C</a><a id="28336" class="Symbol">)</a> <a id="28338" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">≃</a> <a id="28340" class="Symbol">((</a><a id="28342" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28311" class="Bound">A</a> <a id="28344" class="Symbol">→</a> <a id="28346" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28315" class="Bound">C</a><a id="28347" class="Symbol">)</a> <a id="28349" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="28351" class="Symbol">(</a><a id="28352" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28313" class="Bound">B</a> <a id="28354" class="Symbol">→</a> <a id="28356" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28315" class="Bound">C</a><a id="28357" class="Symbol">))</a>
+<a id="28360" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28294" class="Function">→-distrib-⊎</a> <a id="28372" class="Symbol">=</a>
+  <a id="28376" class="Keyword">record</a>
+    <a id="28387" class="Symbol">{</a> <a id="28389" class="Field">to</a>      <a id="28397" class="Symbol">=</a> <a id="28399" class="Symbol">λ{</a> <a id="28402" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28402" class="Bound">f</a> <a id="28404" class="Symbol">→</a> <a id="28406" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="28408" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28402" class="Bound">f</a> <a id="28410" href="https://agda.github.io/agda-stdlib/v0.17/Function.html#769" class="Function Operator">∘</a> <a id="28412" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="28417" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="28419" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28402" class="Bound">f</a> <a id="28421" href="https://agda.github.io/agda-stdlib/v0.17/Function.html#769" class="Function Operator">∘</a> <a id="28423" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="28428" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="28430" class="Symbol">}</a>
+    <a id="28436" class="Symbol">;</a> <a id="28438" class="Field">from</a>    <a id="28446" class="Symbol">=</a> <a id="28448" class="Symbol">λ{</a> <a id="28451" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="28453" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28453" class="Bound">g</a> <a id="28455" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="28457" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28457" class="Bound">h</a> <a id="28459" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="28461" class="Symbol">→</a> <a id="28463" class="Symbol">λ{</a> <a id="28466" class="Symbol">(</a><a id="28467" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="28472" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28472" class="Bound">x</a><a id="28473" class="Symbol">)</a> <a id="28475" class="Symbol">→</a> <a id="28477" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28453" class="Bound">g</a> <a id="28479" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28472" class="Bound">x</a> <a id="28481" class="Symbol">;</a> <a id="28483" class="Symbol">(</a><a id="28484" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="28489" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28489" class="Bound">y</a><a id="28490" class="Symbol">)</a> <a id="28492" class="Symbol">→</a> <a id="28494" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28457" class="Bound">h</a> <a id="28496" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28489" class="Bound">y</a> <a id="28498" class="Symbol">}</a> <a id="28500" class="Symbol">}</a>
+    <a id="28506" class="Symbol">;</a> <a id="28508" class="Field">from∘to</a> <a id="28516" class="Symbol">=</a> <a id="28518" class="Symbol">λ{</a> <a id="28521" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28521" class="Bound">f</a> <a id="28523" class="Symbol">→</a> <a id="28525" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#3801" class="Postulate">extensionality</a> <a id="28540" class="Symbol">λ{</a> <a id="28543" class="Symbol">(</a><a id="28544" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="28549" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28549" class="Bound">x</a><a id="28550" class="Symbol">)</a> <a id="28552" class="Symbol">→</a> <a id="28554" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="28559" class="Symbol">;</a> <a id="28561" class="Symbol">(</a><a id="28562" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="28567" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28567" class="Bound">y</a><a id="28568" class="Symbol">)</a> <a id="28570" class="Symbol">→</a> <a id="28572" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="28577" class="Symbol">}</a> <a id="28579" class="Symbol">}</a>
+    <a id="28585" class="Symbol">;</a> <a id="28587" class="Field">to∘from</a> <a id="28595" class="Symbol">=</a> <a id="28597" class="Symbol">λ{</a> <a id="28600" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="28602" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28602" class="Bound">g</a> <a id="28604" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="28606" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#28606" class="Bound">h</a> <a id="28608" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="28610" class="Symbol">→</a> <a id="28612" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="28617" class="Symbol">}</a>
+    <a id="28623" class="Symbol">}</a>{% endraw %}</pre>
+
+{::comment}
+Corresponding to the law
+{:/}
+
+对应如下的定律：
+
+    (p * n) ^ m = (p ^ m) * (n ^ m)
+
+{::comment}
+we have the isomorphism:
+{:/}
+
+我们有如下的同构：
+
+    A → B × C  ≃  (A → B) × (A → C)
+
+{::comment}
+That is, the assertion that if `A` holds then `B` holds and `C` holds
+is the same as the assertion that if `A` holds then `B` holds and if
+`A` holds then `C` holds.  The proof of left inverse requires both extensionality
+and the rule `η-×` for products:
+{:/}
+
+命题如果 `A` 成立，那么 `B` 成立和 `C` 成立，和命题如果 `A` 成立，那么 `B` 成立以及如果 `A` 成立，那么 `C` 成立，是一样的。左逆的证明需要外延性和积的 `η-×` 规则：
+
+<pre class="Agda">{% raw %}<a id="→-distrib-×"></a><a id="29208" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29208" class="Function">→-distrib-×</a> <a id="29220" class="Symbol">:</a> <a id="29222" class="Symbol">∀</a> <a id="29224" class="Symbol">{</a><a id="29225" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29225" class="Bound">A</a> <a id="29227" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29227" class="Bound">B</a> <a id="29229" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29229" class="Bound">C</a> <a id="29231" class="Symbol">:</a> <a id="29233" class="PrimitiveType">Set</a><a id="29236" class="Symbol">}</a> <a id="29238" class="Symbol">→</a> <a id="29240" class="Symbol">(</a><a id="29241" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29225" class="Bound">A</a> <a id="29243" class="Symbol">→</a> <a id="29245" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29227" class="Bound">B</a> <a id="29247" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="29249" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29229" class="Bound">C</a><a id="29250" class="Symbol">)</a> <a id="29252" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">≃</a> <a id="29254" class="Symbol">(</a><a id="29255" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29225" class="Bound">A</a> <a id="29257" class="Symbol">→</a> <a id="29259" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29227" class="Bound">B</a><a id="29260" class="Symbol">)</a> <a id="29262" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="29264" class="Symbol">(</a><a id="29265" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29225" class="Bound">A</a> <a id="29267" class="Symbol">→</a> <a id="29269" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29229" class="Bound">C</a><a id="29270" class="Symbol">)</a>
+<a id="29272" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29208" class="Function">→-distrib-×</a> <a id="29284" class="Symbol">=</a>
+  <a id="29288" class="Keyword">record</a>
+    <a id="29299" class="Symbol">{</a> <a id="29301" class="Field">to</a>      <a id="29309" class="Symbol">=</a> <a id="29311" class="Symbol">λ{</a> <a id="29314" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29314" class="Bound">f</a> <a id="29316" class="Symbol">→</a> <a id="29318" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29320" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2241" class="Function">proj₁</a> <a id="29326" href="https://agda.github.io/agda-stdlib/v0.17/Function.html#769" class="Function Operator">∘</a> <a id="29328" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29314" class="Bound">f</a> <a id="29330" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29332" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#2310" class="Function">proj₂</a> <a id="29338" href="https://agda.github.io/agda-stdlib/v0.17/Function.html#769" class="Function Operator">∘</a> <a id="29340" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29314" class="Bound">f</a> <a id="29342" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="29344" class="Symbol">}</a>
+    <a id="29350" class="Symbol">;</a> <a id="29352" class="Field">from</a>    <a id="29360" class="Symbol">=</a> <a id="29362" class="Symbol">λ{</a> <a id="29365" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29367" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29367" class="Bound">g</a> <a id="29369" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29371" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29371" class="Bound">h</a> <a id="29373" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="29375" class="Symbol">→</a> <a id="29377" class="Symbol">λ</a> <a id="29379" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29379" class="Bound">x</a> <a id="29381" class="Symbol">→</a> <a id="29383" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29385" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29367" class="Bound">g</a> <a id="29387" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29379" class="Bound">x</a> <a id="29389" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29391" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29371" class="Bound">h</a> <a id="29393" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29379" class="Bound">x</a> <a id="29395" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="29397" class="Symbol">}</a>
+    <a id="29403" class="Symbol">;</a> <a id="29405" class="Field">from∘to</a> <a id="29413" class="Symbol">=</a> <a id="29415" class="Symbol">λ{</a> <a id="29418" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29418" class="Bound">f</a> <a id="29420" class="Symbol">→</a> <a id="29422" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#3801" class="Postulate">extensionality</a> <a id="29437" class="Symbol">λ{</a> <a id="29440" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29440" class="Bound">x</a> <a id="29442" class="Symbol">→</a> <a id="29444" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#5066" class="Function">η-×</a> <a id="29448" class="Symbol">(</a><a id="29449" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29418" class="Bound">f</a> <a id="29451" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29440" class="Bound">x</a><a id="29452" class="Symbol">)</a> <a id="29454" class="Symbol">}</a> <a id="29456" class="Symbol">}</a>
+    <a id="29462" class="Symbol">;</a> <a id="29464" class="Field">to∘from</a> <a id="29472" class="Symbol">=</a> <a id="29474" class="Symbol">λ{</a> <a id="29477" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29479" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29479" class="Bound">g</a> <a id="29481" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29483" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29483" class="Bound">h</a> <a id="29485" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="29487" class="Symbol">→</a> <a id="29489" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a> <a id="29494" class="Symbol">}</a>
+    <a id="29500" class="Symbol">}</a>{% endraw %}</pre>
+
+
+{::comment}
+## Distribution
+{:/}
+
+## 分配律
+
+{::comment}
+Products distribute over sum, up to isomorphism.  The code to validate
+this fact is similar in structure to our previous results:
+{:/}
+
+在同构意义下，积对于和满足分配律。验证这条形式的代码和之前的证明相似：
+
+<pre class="Agda">{% raw %}<a id="×-distrib-⊎"></a><a id="29755" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29755" class="Function">×-distrib-⊎</a> <a id="29767" class="Symbol">:</a> <a id="29769" class="Symbol">∀</a> <a id="29771" class="Symbol">{</a><a id="29772" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29772" class="Bound">A</a> <a id="29774" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29774" class="Bound">B</a> <a id="29776" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29776" class="Bound">C</a> <a id="29778" class="Symbol">:</a> <a id="29780" class="PrimitiveType">Set</a><a id="29783" class="Symbol">}</a> <a id="29785" class="Symbol">→</a> <a id="29787" class="Symbol">(</a><a id="29788" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29772" class="Bound">A</a> <a id="29790" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="29792" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29774" class="Bound">B</a><a id="29793" class="Symbol">)</a> <a id="29795" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="29797" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29776" class="Bound">C</a> <a id="29799" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#5561" class="Record Operator">≃</a> <a id="29801" class="Symbol">(</a><a id="29802" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29772" class="Bound">A</a> <a id="29804" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="29806" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29776" class="Bound">C</a><a id="29807" class="Symbol">)</a> <a id="29809" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="29811" class="Symbol">(</a><a id="29812" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29774" class="Bound">B</a> <a id="29814" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="29816" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29776" class="Bound">C</a><a id="29817" class="Symbol">)</a>
+<a id="29819" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29755" class="Function">×-distrib-⊎</a> <a id="29831" class="Symbol">=</a>
+  <a id="29835" class="Keyword">record</a>
+    <a id="29846" class="Symbol">{</a> <a id="29848" class="Field">to</a>      <a id="29856" class="Symbol">=</a> <a id="29858" class="Symbol">λ{</a> <a id="29861" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29863" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="29868" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29868" class="Bound">x</a> <a id="29870" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29872" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29872" class="Bound">z</a> <a id="29874" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="29876" class="Symbol">→</a> <a id="29878" class="Symbol">(</a><a id="29879" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="29884" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29886" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29868" class="Bound">x</a> <a id="29888" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29890" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29872" class="Bound">z</a> <a id="29892" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="29893" class="Symbol">)</a>
+                 <a id="29912" class="Symbol">;</a> <a id="29914" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29916" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="29921" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29921" class="Bound">y</a> <a id="29923" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29925" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29925" class="Bound">z</a> <a id="29927" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="29929" class="Symbol">→</a> <a id="29931" class="Symbol">(</a><a id="29932" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="29937" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29939" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29921" class="Bound">y</a> <a id="29941" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29943" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29925" class="Bound">z</a> <a id="29945" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="29946" class="Symbol">)</a>
+                 <a id="29965" class="Symbol">}</a>
+    <a id="29971" class="Symbol">;</a> <a id="29973" class="Field">from</a>    <a id="29981" class="Symbol">=</a> <a id="29983" class="Symbol">λ{</a> <a id="29986" class="Symbol">(</a><a id="29987" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="29992" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="29994" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29994" class="Bound">x</a> <a id="29996" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="29998" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29998" class="Bound">z</a> <a id="30000" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="30001" class="Symbol">)</a> <a id="30003" class="Symbol">→</a> <a id="30005" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30007" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30012" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29994" class="Bound">x</a> <a id="30014" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30016" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#29998" class="Bound">z</a> <a id="30018" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>
+                 <a id="30037" class="Symbol">;</a> <a id="30039" class="Symbol">(</a><a id="30040" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30045" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30047" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30047" class="Bound">y</a> <a id="30049" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30051" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30051" class="Bound">z</a> <a id="30053" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="30054" class="Symbol">)</a> <a id="30056" class="Symbol">→</a> <a id="30058" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30060" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30065" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30047" class="Bound">y</a> <a id="30067" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30069" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30051" class="Bound">z</a> <a id="30071" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>
+                 <a id="30090" class="Symbol">}</a>
+    <a id="30096" class="Symbol">;</a> <a id="30098" class="Field">from∘to</a> <a id="30106" class="Symbol">=</a> <a id="30108" class="Symbol">λ{</a> <a id="30111" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30113" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30118" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30118" class="Bound">x</a> <a id="30120" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30122" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30122" class="Bound">z</a> <a id="30124" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="30126" class="Symbol">→</a> <a id="30128" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+                 <a id="30150" class="Symbol">;</a> <a id="30152" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30154" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30159" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30159" class="Bound">y</a> <a id="30161" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30163" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30163" class="Bound">z</a> <a id="30165" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="30167" class="Symbol">→</a> <a id="30169" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+                 <a id="30191" class="Symbol">}</a>
+    <a id="30197" class="Symbol">;</a> <a id="30199" class="Field">to∘from</a> <a id="30207" class="Symbol">=</a> <a id="30209" class="Symbol">λ{</a> <a id="30212" class="Symbol">(</a><a id="30213" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30218" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30220" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30220" class="Bound">x</a> <a id="30222" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30224" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30224" class="Bound">z</a> <a id="30226" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="30227" class="Symbol">)</a> <a id="30229" class="Symbol">→</a> <a id="30231" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+                 <a id="30253" class="Symbol">;</a> <a id="30255" class="Symbol">(</a><a id="30256" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30261" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30263" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30263" class="Bound">y</a> <a id="30265" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30267" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30267" class="Bound">z</a> <a id="30269" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="30270" class="Symbol">)</a> <a id="30272" class="Symbol">→</a> <a id="30274" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+                 <a id="30296" class="Symbol">}</a>
+    <a id="30302" class="Symbol">}</a>{% endraw %}</pre>
+
+{::comment}
+Sums do not distribute over products up to isomorphism, but it is an embedding:
+{:/}
+
+和对于积不满足分配律，但满足嵌入：
+
+<pre class="Agda">{% raw %}<a id="⊎-distrib-×"></a><a id="30446" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30446" class="Function">⊎-distrib-×</a> <a id="30458" class="Symbol">:</a> <a id="30460" class="Symbol">∀</a> <a id="30462" class="Symbol">{</a><a id="30463" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30463" class="Bound">A</a> <a id="30465" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30465" class="Bound">B</a> <a id="30467" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30467" class="Bound">C</a> <a id="30469" class="Symbol">:</a> <a id="30471" class="PrimitiveType">Set</a><a id="30474" class="Symbol">}</a> <a id="30476" class="Symbol">→</a> <a id="30478" class="Symbol">(</a><a id="30479" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30463" class="Bound">A</a> <a id="30481" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="30483" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30465" class="Bound">B</a><a id="30484" class="Symbol">)</a> <a id="30486" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="30488" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30467" class="Bound">C</a> <a id="30490" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Isomorphism.md %}{% raw %}#11733" class="Record Operator">≲</a> <a id="30492" class="Symbol">(</a><a id="30493" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30463" class="Bound">A</a> <a id="30495" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="30497" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30467" class="Bound">C</a><a id="30498" class="Symbol">)</a> <a id="30500" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="30502" class="Symbol">(</a><a id="30503" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30465" class="Bound">B</a> <a id="30505" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="30507" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30467" class="Bound">C</a><a id="30508" class="Symbol">)</a>
+<a id="30510" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30446" class="Function">⊎-distrib-×</a> <a id="30522" class="Symbol">=</a>
+  <a id="30526" class="Keyword">record</a>
+    <a id="30537" class="Symbol">{</a> <a id="30539" class="Field">to</a>      <a id="30547" class="Symbol">=</a> <a id="30549" class="Symbol">λ{</a> <a id="30552" class="Symbol">(</a><a id="30553" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30558" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30560" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30560" class="Bound">x</a> <a id="30562" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30564" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30564" class="Bound">y</a> <a id="30566" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="30567" class="Symbol">)</a> <a id="30569" class="Symbol">→</a> <a id="30571" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30573" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30578" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30560" class="Bound">x</a> <a id="30580" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30582" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30587" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30564" class="Bound">y</a> <a id="30589" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>
+                 <a id="30608" class="Symbol">;</a> <a id="30610" class="Symbol">(</a><a id="30611" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30616" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30616" class="Bound">z</a><a id="30617" class="Symbol">)</a>         <a id="30627" class="Symbol">→</a> <a id="30629" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30631" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30636" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30616" class="Bound">z</a> <a id="30638" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30640" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30645" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30616" class="Bound">z</a> <a id="30647" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a>
+                 <a id="30666" class="Symbol">}</a>
+    <a id="30672" class="Symbol">;</a> <a id="30674" class="Field">from</a>    <a id="30682" class="Symbol">=</a> <a id="30684" class="Symbol">λ{</a> <a id="30687" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30689" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30694" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30694" class="Bound">x</a> <a id="30696" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30698" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30703" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30703" class="Bound">y</a> <a id="30705" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="30707" class="Symbol">→</a> <a id="30709" class="Symbol">(</a><a id="30710" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30715" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30717" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30694" class="Bound">x</a> <a id="30719" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30721" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30703" class="Bound">y</a> <a id="30723" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="30724" class="Symbol">)</a>
+                 <a id="30743" class="Symbol">;</a> <a id="30745" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30747" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30752" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30752" class="Bound">x</a> <a id="30754" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30756" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30761" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30761" class="Bound">z</a> <a id="30763" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="30765" class="Symbol">→</a> <a id="30767" class="Symbol">(</a><a id="30768" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30773" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30761" class="Bound">z</a><a id="30774" class="Symbol">)</a>
+                 <a id="30793" class="Symbol">;</a> <a id="30795" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30797" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30802" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30802" class="Bound">z</a> <a id="30804" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30806" class="Symbol">_</a>      <a id="30813" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a> <a id="30815" class="Symbol">→</a> <a id="30817" class="Symbol">(</a><a id="30818" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30823" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30802" class="Bound">z</a><a id="30824" class="Symbol">)</a>
+                 <a id="30843" class="Symbol">}</a>
+    <a id="30849" class="Symbol">;</a> <a id="30851" class="Field">from∘to</a> <a id="30859" class="Symbol">=</a> <a id="30861" class="Symbol">λ{</a> <a id="30864" class="Symbol">(</a><a id="30865" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14340" class="InductiveConstructor">inj₁</a> <a id="30870" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟨</a> <a id="30872" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30872" class="Bound">x</a> <a id="30874" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">,</a> <a id="30876" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30876" class="Bound">y</a> <a id="30878" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1792" class="InductiveConstructor Operator">⟩</a><a id="30879" class="Symbol">)</a> <a id="30881" class="Symbol">→</a> <a id="30883" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+                 <a id="30905" class="Symbol">;</a> <a id="30907" class="Symbol">(</a><a id="30908" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14382" class="InductiveConstructor">inj₂</a> <a id="30913" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#30913" class="Bound">z</a><a id="30914" class="Symbol">)</a>         <a id="30924" class="Symbol">→</a> <a id="30926" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Equality.html#140" class="InductiveConstructor">refl</a>
+                 <a id="30948" class="Symbol">}</a>
+    <a id="30954" class="Symbol">}</a>{% endraw %}</pre>
+{::comment}
+Note that there is a choice in how we write the `from` function.
+As given, it takes `⟨ inj₂ z , inj₂ z′ ⟩` to `inj₂ z`, but it is
+easy to write a variant that instead returns `inj₂ z′`.  We have
+an embedding rather than an isomorphism because the
+`from` function must discard either `z` or `z′` in this case.
+{:/}
+
+我们在定义 `from` 函数的时候可以有选择。给定的定义中，它将 `⟨ inj₂ z , inj₂ z′ ⟩`
+转换为 `inj₂ z`，但我们也可以返回 `inj₂ z′` 作为嵌入证明的变种。我们在这里只能证明嵌入，而不能证明同构，因为 `from` 函数必须丢弃 `z` 或者 `z′` 其中的一个。
+
+{::comment}
+In the usual approach to logic, both of the distribution laws
+are given as equivalences, where each side implies the other:
+{:/}
+
+在一般的逻辑学方法中，两条分配律都以等价的形式给出，每一边都蕴含了另一边：
+
+    A × (B ⊎ C) ⇔ (A × B) ⊎ (A × C)
+    A ⊎ (B × C) ⇔ (A ⊎ B) × (A ⊎ C)
+
+{::comment}
+But when we consider the functions that provide evidence for these
+implications, then the first corresponds to an isomorphism while the
+second only corresponds to an embedding, revealing a sense in which
+one of these laws is "more true" than the other.
+{:/}
+
+但当我们考虑提供上述蕴含证明的函数时，第一条对应同构而第二条只能对应嵌入，揭示了有些定理比另一个更加的”正确“。
+
+
+{::comment}
+#### Exercise `⊎-weak-×` (recommended)
+{:/}
+
+#### 练习 `⊎-weak-×` （推荐）
+
+{::comment}
+Show that the following property holds:
+{:/}
+
+证明如下性质成立：
+
+<pre class="Agda">{% raw %}<a id="32200" class="Keyword">postulate</a>
+  <a id="⊎-weak-×"></a><a id="32212" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32212" class="Postulate">⊎-weak-×</a> <a id="32221" class="Symbol">:</a> <a id="32223" class="Symbol">∀</a> <a id="32225" class="Symbol">{</a><a id="32226" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32226" class="Bound">A</a> <a id="32228" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32228" class="Bound">B</a> <a id="32230" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32230" class="Bound">C</a> <a id="32232" class="Symbol">:</a> <a id="32234" class="PrimitiveType">Set</a><a id="32237" class="Symbol">}</a> <a id="32239" class="Symbol">→</a> <a id="32241" class="Symbol">(</a><a id="32242" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32226" class="Bound">A</a> <a id="32244" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="32246" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32228" class="Bound">B</a><a id="32247" class="Symbol">)</a> <a id="32249" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="32251" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32230" class="Bound">C</a> <a id="32253" class="Symbol">→</a> <a id="32255" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32226" class="Bound">A</a> <a id="32257" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="32259" class="Symbol">(</a><a id="32260" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32228" class="Bound">B</a> <a id="32262" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="32264" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32230" class="Bound">C</a><a id="32265" class="Symbol">)</a>{% endraw %}</pre>
+{::comment}
+This is called a _weak distributive law_. Give the corresponding
+distributive law, and explain how it relates to the weak version.
+{:/}
+
+这被称为*弱分配律*。给出相对应的分配律，并解释分配律与弱分配律的关系。
+
+{::comment}
+<pre class="Agda">{% raw %}<a id="32490" class="Comment">-- Your code goes here</a>{% endraw %}</pre>
+{:/}
+
+<pre class="Agda">{% raw %}<a id="32543" class="Comment">-- 请将代码写在此处。</a>{% endraw %}</pre>
+
+
+
+{::comment}
+#### Exercise `⊎×-implies-×⊎`
+{:/}
+
+#### 练习 `⊎×-implies-×⊎`
+
+{::comment}
+Show that a disjunct of conjuncts implies a conjunct of disjuncts:
+{:/}
+
+证明合取的析取蕴含了析取的合取：
+
+<pre class="Agda">{% raw %}<a id="32759" class="Keyword">postulate</a>
+  <a id="⊎×-implies-×⊎"></a><a id="32771" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32771" class="Postulate">⊎×-implies-×⊎</a> <a id="32785" class="Symbol">:</a> <a id="32787" class="Symbol">∀</a> <a id="32789" class="Symbol">{</a><a id="32790" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32790" class="Bound">A</a> <a id="32792" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32792" class="Bound">B</a> <a id="32794" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32794" class="Bound">C</a> <a id="32796" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32796" class="Bound">D</a> <a id="32798" class="Symbol">:</a> <a id="32800" class="PrimitiveType">Set</a><a id="32803" class="Symbol">}</a> <a id="32805" class="Symbol">→</a> <a id="32807" class="Symbol">(</a><a id="32808" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32790" class="Bound">A</a> <a id="32810" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="32812" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32792" class="Bound">B</a><a id="32813" class="Symbol">)</a> <a id="32815" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="32817" class="Symbol">(</a><a id="32818" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32794" class="Bound">C</a> <a id="32820" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="32822" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32796" class="Bound">D</a><a id="32823" class="Symbol">)</a> <a id="32825" class="Symbol">→</a> <a id="32827" class="Symbol">(</a><a id="32828" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32790" class="Bound">A</a> <a id="32830" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="32832" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32794" class="Bound">C</a><a id="32833" class="Symbol">)</a> <a id="32835" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#1761" class="Datatype Operator">×</a> <a id="32837" class="Symbol">(</a><a id="32838" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32792" class="Bound">B</a> <a id="32840" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#14309" class="Datatype Operator">⊎</a> <a id="32842" href="{% endraw %}{{ site.baseurl }}{% link out/plfa/Connectives.md %}{% raw %}#32796" class="Bound">D</a><a id="32843" class="Symbol">)</a>{% endraw %}</pre>
+{::comment}
+Does the converse hold? If so, prove; if not, give a counterexample.
+{:/}
+
+反命题成立吗？如果成立，给出证明；如果不成立，给出反例。
+
+{::comment}
+<pre class="Agda">{% raw %}<a id="32998" class="Comment">-- Your code goes here</a>{% endraw %}</pre>
+{:/}
+
+<pre class="Agda">{% raw %}<a id="33051" class="Comment">-- 请将代码写在此处。</a>{% endraw %}</pre>
+
+{::comment}
+## Standard library
+{:/}
+
+## 标准库
+
+{::comment}
+Definitions similar to those in this chapter can be found in the standard library:
+{:/}
+
+标准库中可以找到与本章节中相似的定义：
+
+<pre class="Agda">{% raw %}<a id="33257" class="Keyword">import</a> <a id="33264" href="https://agda.github.io/agda-stdlib/v0.17/Data.Product.html" class="Module">Data.Product</a> <a id="33277" class="Keyword">using</a> <a id="33283" class="Symbol">(</a><a id="33284" href="https://agda.github.io/agda-stdlib/v0.17/Data.Product.html#1353" class="Function Operator">_×_</a><a id="33287" class="Symbol">;</a> <a id="33289" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Sigma.html#155" class="Field">proj₁</a><a id="33294" class="Symbol">;</a> <a id="33296" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Sigma.html#167" class="Field">proj₂</a><a id="33301" class="Symbol">)</a> <a id="33303" class="Keyword">renaming</a> <a id="33312" class="Symbol">(</a><a id="33313" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Sigma.html#139" class="InductiveConstructor Operator">_,_</a> <a id="33317" class="Symbol">to</a> <a id="33320" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Sigma.html#139" class="InductiveConstructor Operator">⟨_,_⟩</a><a id="33325" class="Symbol">)</a>
+<a id="33327" class="Keyword">import</a> <a id="33334" href="https://agda.github.io/agda-stdlib/v0.17/Data.Unit.html" class="Module">Data.Unit</a> <a id="33344" class="Keyword">using</a> <a id="33350" class="Symbol">(</a><a id="33351" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Unit.html#69" class="Record">⊤</a><a id="33352" class="Symbol">;</a> <a id="33354" href="https://agda.github.io/agda-stdlib/v0.17/Agda.Builtin.Unit.html#106" class="InductiveConstructor">tt</a><a id="33356" class="Symbol">)</a>
+<a id="33358" class="Keyword">import</a> <a id="33365" href="https://agda.github.io/agda-stdlib/v0.17/Data.Sum.html" class="Module">Data.Sum</a> <a id="33374" class="Keyword">using</a> <a id="33380" class="Symbol">(</a><a id="33381" href="https://agda.github.io/agda-stdlib/v0.17/Data.Sum.Base.html#419" class="Datatype Operator">_⊎_</a><a id="33384" class="Symbol">;</a> <a id="33386" href="https://agda.github.io/agda-stdlib/v0.17/Data.Sum.Base.html#475" class="InductiveConstructor">inj₁</a><a id="33390" class="Symbol">;</a> <a id="33392" href="https://agda.github.io/agda-stdlib/v0.17/Data.Sum.Base.html#500" class="InductiveConstructor">inj₂</a><a id="33396" class="Symbol">)</a> <a id="33398" class="Keyword">renaming</a> <a id="33407" class="Symbol">(</a><a id="33408" href="https://agda.github.io/agda-stdlib/v0.17/Data.Sum.Base.html#726" class="Function Operator">[_,_]</a> <a id="33414" class="Symbol">to</a> <a id="33417" href="https://agda.github.io/agda-stdlib/v0.17/Data.Sum.Base.html#726" class="Function Operator">case-⊎</a><a id="33423" class="Symbol">)</a>
+<a id="33425" class="Keyword">import</a> <a id="33432" href="https://agda.github.io/agda-stdlib/v0.17/Data.Empty.html" class="Module">Data.Empty</a> <a id="33443" class="Keyword">using</a> <a id="33449" class="Symbol">(</a><a id="33450" href="https://agda.github.io/agda-stdlib/v0.17/Data.Empty.html#243" class="Datatype">⊥</a><a id="33451" class="Symbol">;</a> <a id="33453" href="https://agda.github.io/agda-stdlib/v0.17/Data.Empty.html#360" class="Function">⊥-elim</a><a id="33459" class="Symbol">)</a>
+<a id="33461" class="Keyword">import</a> <a id="33468" href="https://agda.github.io/agda-stdlib/v0.17/Function.Equivalence.html" class="Module">Function.Equivalence</a> <a id="33489" class="Keyword">using</a> <a id="33495" class="Symbol">(</a><a id="33496" href="https://agda.github.io/agda-stdlib/v0.17/Function.Equivalence.html#935" class="Function Operator">_⇔_</a><a id="33499" class="Symbol">)</a>{% endraw %}</pre>
+{::comment}
+The standard library constructs pairs with `_,_` whereas we use `⟨_,_⟩`.
+The former makes it convenient to build triples or larger tuples from pairs,
+permitting `a , b , c` to stand for `(a , (b , c))`.  But it conflicts with
+other useful notations, such as `[_,_]` to construct a list of two elements in
+Chapter [Lists]({{ site.baseurl }}{% link out/plfa/Lists.md%})
+and `Γ , A` to extend environments in
+Chapter [DeBruijn]({{ site.baseurl }}{% link out/plfa/DeBruijn.md%}).
+The standard library `_⇔_` is similar to ours, but the one in the
+standard library is less convenient, since it is parameterised with
+respect to an arbitrary notion of equivalence.
+{:/}
+
+标准库中使用 `_,_` 构造数据对，而我们使用 `⟨_,_⟩`。前者在从数据对构造三元对或者更大的元组时更加的方便，允许 `a , b , c` 作为 `(a, (b , c))` 的记法。但它与其他有用的记法相冲突，比如说 [Lists]({{ site.baseurl }}{% link out/plfa/Lists.md%}) 中的 `[_,_]` 记法表示两个元素的列表，或者 [DeBruijn]({{ site.baseurl }}{% link out/plfa/DeBruijn.md%}) 章节中的 `Γ , A` 来表示环境的扩展。标准库中的 `_⇔_` 和我们的相似，但使用起来比较不便，因为它可以根据任意的相等性定义进行参数化。
+
+## Unicode
+
+{::comment}
+This chapter uses the following unicode:
+
+    ×  U+00D7  MULTIPLICATION SIGN (\x)
+    ⊎  U+228E  MULTISET UNION (\u+)
+    ⊤  U+22A4  DOWN TACK (\top)
+    ⊥  U+22A5  UP TACK (\bot)
+    η  U+03B7  GREEK SMALL LETTER ETA (\eta)
+    ₁  U+2081  SUBSCRIPT ONE (\_1)
+    ₂  U+2082  SUBSCRIPT TWO (\_2)
+    ⇔  U+21D4  LEFT RIGHT DOUBLE ARROW (\<=>)
+{:/}
+
+本章节使用下列 Unicode：
+
+    ×  U+00D7  乘法符号 (\x)
+    ⊎  U+228E  多重集并集 (\u+)
+    ⊤  U+22A4  向下图钉 (\top)
+    ⊥  U+22A5  向上图钉 (\bot)
+    η  U+03B7  希腊小写字母 ETA (\eta)
+    ₁  U+2081  下标 1 (\_1)
+    ₂  U+2082  下标 2 (\_2)
+    ⇔  U+21D4  左右双箭头 (\<=>)
